@@ -5,103 +5,124 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
-import htmlparser.DisplayInfo;
+import htmlparser.InfoStorer;
+import htmlparser.XMLReader;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.awt.event.ActionEvent;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingConstants;
 
 public class MainWindow extends JFrame{
 
 	private JPanel contentPane;
-	public static JComboBox<String> cBPortal;
-	private DisplayInfo dI;
+	private InfoStorer iS;
+	private JTextField textField;
+	private JTextArea textArea;
+	JFileChooser fC = new JFileChooser();
+	File fil;
 
 	public MainWindow(){
-		setTitle("Look'n'Eat Control Panel");
+		setTitle("ArachniApp Control Panel");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 450, 242);
+		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
 		
-		JLabel lblPortal = new JLabel("Web portal:");
-		lblPortal.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblPortal.setBounds(30, 33, 89, 14);
-		contentPane.add(lblPortal);
+		textField = new JTextField();
+		textField.setBounds(52, 11, 175, 20);
+		contentPane.add(textField);
+		textField.setColumns(10);
 		
-		cBPortal = new JComboBox<String>();
-		cBPortal.setModel(new DefaultComboBoxModel<String>(new String[] {"TripAdvisor", "Yelp"}));
-		cBPortal.setSelectedIndex(0);
-		cBPortal.setBounds(125, 30, 254, 20);
-		contentPane.add(cBPortal);
-		
-		JButton btnChangeData = new JButton("Change Data");
-		btnChangeData.setBounds(110, 80, 202, 23);
-		contentPane.add(btnChangeData);
-		
-		JButton btnParse = new JButton("Parse web portal");
-		btnParse.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				long time_start, time_end;
-				time_start = System.currentTimeMillis();
+		JButton btnSelectFile = new JButton("Select file");
+		btnSelectFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0){
+				int selection = fC.showOpenDialog(contentPane);
 				
-				// Tarea que se va a cronometrar
-				
-				String opt = cBPortal.getSelectedItem().toString();
-				final int n;
-				
-				switch(opt){
-				case "TripAdvisor":
-					n = 1;
-					break;
-				case "11870":
-					n = 2;
-					break;
-				case "Yelp":
-					n = 3;
-					break;
-				default:
-					n = 4;
-					break;
+				if(selection == JFileChooser.APPROVE_OPTION){
+				    fil = fC.getSelectedFile();
+				    textField.setText(fil.getAbsolutePath());
+				 
+				    try(FileReader fr = new FileReader(fil)){
+				        String str = "";
+				        int val = fr.read();
+				        
+				        while(val != -1){
+				        	str = str + (char)val;
+				        	val = fr.read();
+				        }
+				        
+				        textArea.setText(str);
+				    } catch (IOException e) {
+				        e.printStackTrace();
+				    }
 				}
-				
-				dI = new DisplayInfo(n);
-				dI.initializePortalParameters();				
-				dI.restPagination();
-				
-				final DatabaseWindow dW = new DatabaseWindow(dI);
-				
-				// Tarea finalizada
-				
-				time_end = System.currentTimeMillis();
-				
-				JOptionPane.showMessageDialog(null, "You've parsed "+cBPortal.getSelectedItem().toString()+" successfully in "+(time_end-time_start)+" milliseconds!");
-				
-				dW.setVisible(true);
-				dispose();
 			}
 		});
-		btnParse.setBounds(110, 114, 202, 23);
-		contentPane.add(btnParse);
+		btnSelectFile.setBounds(235, 10, 100, 23);
+		contentPane.add(btnSelectFile);
 		
-		JButton btnExit = new JButton("Exit");
+		textArea = new JTextArea();
+		textArea.setLineWrap(true);
+		textArea.setWrapStyleWord(true);
+		textArea.setBounds(52, 42, 360, 156);
+		
+		JScrollPane scroll=new JScrollPane(textArea);
+        scroll.setBounds(52, 42, 360, 156);
+        contentPane.add(scroll);
+        
+        JButton btnParseWeb = new JButton("Parse web");
+        btnParseWeb.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		if(fil != null){
+        			XMLReader xR = new XMLReader();
+        			ArrayList<String> arrayParam = new ArrayList<String>();
+        			
+        			try{
+        				arrayParam = xR.readFile(textField.getText());
+					}catch(Exception ex){
+						ex.printStackTrace();
+					}
+        			
+        			iS = new InfoStorer(arrayParam);
+        			iS.initializePortalParameters();
+        			
+        			iS.downloadBasicArray(iS.xPath1);
+        			iS.getBasicArray();        			
+        			
+    				JOptionPane.showMessageDialog(null, "SUCCESS!!");
+        		}
+        		else{
+        			JOptionPane.showMessageDialog(null, "ERROR!!");
+        		}
+        	}
+        });
+        btnParseWeb.setBounds(312, 216, 100, 23);
+        contentPane.add(btnParseWeb);
+        
+        JButton btnExit = new JButton("Exit");
 		btnExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				System.exit(0);
 			}
 		});
-		btnExit.setBounds(175, 158, 70, 23);
+		btnExit.setBounds(340, 10, 70, 23);
 		contentPane.add(btnExit);
 	}
 }

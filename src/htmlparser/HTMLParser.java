@@ -35,7 +35,7 @@ public class HTMLParser{
     
 	String URL;
 	ArrayList<KeyValue> parameters;
-	ArrayList<String> xPath1, xPath2;
+	String xPath1, xPath2;
 	ArrayList<KeyValue> requestProperties = new ArrayList<KeyValue>();
 	ArrayList<KeyValue> responseProperties = new ArrayList<KeyValue>();
 	private iLogger logger = null;
@@ -48,18 +48,18 @@ public class HTMLParser{
     
 
 	public HTMLParser(String URL) {
-        init(URL, Method.GET, new ArrayList<KeyValue>(), new ArrayList<String>(), new ArrayList<String>(), new DefaultLogger());
+        init(URL, Method.GET, new ArrayList<KeyValue>(), new String(), new String(), new DefaultLogger());
 	}
     
-	public HTMLParser(String URL, ArrayList<String> xPath1) {
-		init(URL, Method.GET, new ArrayList<KeyValue>(), xPath1, new ArrayList<String>(), new DefaultLogger());
+	public HTMLParser(String URL, String xPath1) {
+		init(URL, Method.GET, new ArrayList<KeyValue>(), xPath1, new String(), new DefaultLogger());
 	}
 	
-	public HTMLParser(String URL, ArrayList<String> xPath1, ArrayList<String> xPath2) {
+	public HTMLParser(String URL, String xPath1, String xPath2) {
 		init(URL, Method.GET, new ArrayList<KeyValue>(), xPath1, xPath2, new DefaultLogger());
 	}
 	
-	private void init(String URL, Method method, ArrayList<KeyValue> parameters, ArrayList<String> xPath1, ArrayList<String> xPath2, iLogger logger) {
+	private void init(String URL, Method method, ArrayList<KeyValue> parameters, String xPath1, String xPath2, iLogger logger) {
         this.URL = URL;
         this.parameters = parameters;
         this.xPath1 = xPath1;
@@ -71,24 +71,22 @@ public class HTMLParser{
     }
 	
 	public ArrayList<String> downloadAsArray() {
-        if(xPath1.size() > 0) {
-            ArrayList<String> results = new ArrayList<String>(xPath1.size());
+        if(!(xPath1.isEmpty())){
+            ArrayList<String> results = new ArrayList<String>();
             
-            try {
+            try{
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
                 doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
                 
                 XPath xpath = XPathFactory.newInstance().newXPath();
                 
-                for(String path: xPath1) {
-                    NodeList nodes = (NodeList) xpath.evaluate(path, getDoc(), XPathConstants.NODESET);
+                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
 
-                    for (int i = 0; i < nodes.getLength(); i++) {
-                    	String str = nodes.item(i).getTextContent();
-                    	String strCod = StringEscapeUtils.unescapeHtml4(str);
+                for (int i = 0; i < nodes.getLength(); i++) {
+                	String str = nodes.item(i).getTextContent();
+                    String strCod = StringEscapeUtils.unescapeHtml4(str);
                     	
-                        results.add(strCod);
-                    }
+                    results.add(strCod);
                 }
                 
                 return results;
@@ -110,7 +108,7 @@ public class HTMLParser{
 		String str, str2, str3, strCod, urlFixed;
 		DataFixer dF = new DataFixer(namePortal);
 		
-        if(xPath1.size() > 0) {
+		if(!(xPath1.isEmpty()) && !(xPath2.isEmpty())){
         	Map<String, String> results = new HashMap<String, String>();
             
             try {
@@ -119,24 +117,19 @@ public class HTMLParser{
                 
                 XPath xpath1 = XPathFactory.newInstance().newXPath();
                 XPath xpath2 = XPathFactory.newInstance().newXPath();
-                int j = 0;
                 
-                for(String path: xPath1) {
-                    NodeList nodes1 = (NodeList) xpath1.evaluate(path, getDoc(), XPathConstants.NODESET);
-                    NodeList nodes2 = (NodeList) xpath2.evaluate(xPath2.get(j), getDoc(), XPathConstants.NODESET);
+                NodeList nodes1 = (NodeList) xpath1.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
+                NodeList nodes2 = (NodeList) xpath2.evaluate(xPath2, getDoc(), XPathConstants.NODESET);
                     
-                    j++;
-                    
-                    for (int i = 0; i < nodes1.getLength(); i++) {
-                    	str = nodes1.item(i).getTextContent();
-                    	str2 = str.replace("\n", "");                 	
-                    	strCod = StringEscapeUtils.unescapeHtml4(str2);
+                for (int i = 0; i < nodes1.getLength(); i++) {
+                    str = nodes1.item(i).getTextContent();
+                    str2 = str.replace("\n", "");                 	
+                    strCod = StringEscapeUtils.unescapeHtml4(str2);
                     	
-                    	str3 = nodes2.item(i).getTextContent();
-                    	urlFixed = dF.fixURL(str3);
+                    str3 = nodes2.item(i).getTextContent();
+                    urlFixed = dF.fixURL(str3);
                     	
-                        results.put(strCod, urlFixed);
-                    }
+                    results.put(strCod, urlFixed);
                 }
                 
                 return results;
@@ -155,7 +148,7 @@ public class HTMLParser{
     }
 	
 	public String downloadAsString(String namePortal, String data){
-        if(xPath1.size() > 0) {
+		if(!(xPath1.isEmpty())){
         	String result, resultCod = "", comma = "";
             
             try {
@@ -163,40 +156,39 @@ public class HTMLParser{
                 doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
                 
                 XPath xpath = XPathFactory.newInstance().newXPath();
-                for(String path: xPath1){
-                	NodeList nodes = (NodeList) xpath.evaluate(path, getDoc(), XPathConstants.NODESET);
 
-                    for (int i = 0; i < nodes.getLength(); i++) {
-                        result = nodes.item(i).getTextContent();
+                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
+
+                for(int i = 0; i < nodes.getLength(); i++) {
+                    result = nodes.item(i).getTextContent();
                         
-                        if(data == "coord"){
-                        	resultCod = resultCod+comma+result;
-                            resultCod = StringEscapeUtils.unescapeHtml4(resultCod);
-                            comma = ", ";
-                        }
-                        else{
-                        	resultCod = StringEscapeUtils.unescapeHtml4(result);
-                        }
+                    if(data == "coord"){
+                    	resultCod = resultCod+comma+result;
+                        resultCod = StringEscapeUtils.unescapeHtml4(resultCod);
+                        comma = ", ";
                     }
-                    
-                    dF = new DataFixer(namePortal);
-                    
-                    switch(data){
-                    case "val":
-                    	resultCod = dF.fixVal(resultCod);
-                    	break;
-                    case "numPagesRest":
-                    	resultCod = dF.fixNumPages(resultCod);
-                    	break;
-                    case "tel":
-                    	resultCod = dF.fixTel(resultCod);
-                    	break;
-                    case "coord":
-                    	resultCod = dF.fixCoord(resultCod);
-                    	break;
-                    default:
-                    	break;
+                    else{
+                        resultCod = StringEscapeUtils.unescapeHtml4(result);
                     }
+                }
+                    
+                dF = new DataFixer(namePortal);
+                    
+                switch(data){
+                case "val":
+                	resultCod = dF.fixVal(resultCod);
+                    break;
+                case "numPagesRest":
+                    resultCod = dF.fixNumPages(resultCod);
+                    break;
+                case "tel":
+                    resultCod = dF.fixTel(resultCod);
+                    break;
+                case "coord":
+                    resultCod = dF.fixCoord(resultCod);
+                    break;
+                default:
+                    break;
                 }
                 
                 return resultCod;

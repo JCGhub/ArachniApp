@@ -8,79 +8,29 @@ import java.util.*;
 
 import javax.swing.JOptionPane;
 
-public class DisplayInfo{	
+public class InfoStorer{	
 	
 	Map<String, String> mapNameURL = new HashMap<String, String>();
 	Map<String, String> mapNameURL2 = new HashMap<String, String>();
 	Map<String, ArrayList<String>> mapNameComm = new HashMap<String, ArrayList<String>>();
 	ArrayList<String> arrayComm = new ArrayList<String>();
-	ArrayList<Integer> arrayVal = new ArrayList<Integer>();
-	ArrayList<String> xPathName = new ArrayList<String>();
-	ArrayList<String> xPathURL = new ArrayList<String>();
-	ArrayList<String> xPathPages = new ArrayList<String>();
-	ArrayList<String> xPathComm = new ArrayList<String>();
-	ArrayList<String> xPathNumComm = new ArrayList<String>();
-	ArrayList<String> xPathVal = new ArrayList<String>();
-	ArrayList<String> xPathTel = new ArrayList<String>();
-	ArrayList<String> xPathAddress = new ArrayList<String>();
-	ArrayList<String> xPathCoord = new ArrayList<String>();
+	ArrayList<String> arrayParam = new ArrayList<String>();
+	ArrayList<String> arrayInfo = new ArrayList<String>();
+	public String pName, pURL, xPath1, xPath2;
+	String xPathName, xPathURL, xPathPages, xPathComm, xPathNumComm, xPathVal, 
+		   xPathTel, xPathAddress, xPathCoord;
 	public String mainURL, table_names, table_comm, table_info, namePortal;
 	int nPortal, numPagesRest;
 	
-	public DisplayInfo(int nPortal){
-		this.nPortal = nPortal;
+	public InfoStorer(ArrayList<String> arrayParam){
+		this.arrayParam = arrayParam;
 	}
 	
 	public void initializePortalParameters(){
-		switch(nPortal){
-		case 1:
-			namePortal = "TripAdvisor";
-			xPathName.add("//a[@class='property_title']");
-			xPathURL.add("//div/div/h3/a/@href");
-			xPathPages.add("//div[3]/div/div/a[6]/@data-page-number");
-			xPathComm.add("//div[2]/div/div/div[3]/p");
-			xPathNumComm.add("//div[@class='rs rating']/a/@content");
-			xPathVal.add("//span[@class='rate sprite-rating_rr rating_rr']/img/@content");
-			xPathTel.add("//div[@class='fl phoneNumber']");
-			xPathAddress.add("//span[@property='streetAddress']");
-			xPathCoord.add("//div[@class='mapContainer']/@*[name()='data-lng' or name()='data-lat']");
-			mainURL = "https://www.tripadvisor.es/Restaurants-g187432-[[oaxx]]-Cadiz_Costa_de_la_Luz_Andalucia.html";
-			table_names = "rest_ta";
-			table_comm = "comm_ta";
-			table_info = "info_ta";
-			
-			break;
-		case 2:
-			/*namePortal = "11870";
-			xPathName.add("//h2[@class='card__title']/a");
-			xPathURL.add("//h2[@class='card__title']/a/@href");
-			xPathPages.add("");
-			mainURL = "https://11870.com/k/restaurantes/es/es/cadiz?[[p=xx]]";
-			table_names = "rest_11";
-			table_comm = "comm_11";*/
-			
-			break;
-		case 3:
-			namePortal = "Yelp";
-			xPathName.add("//a[@class='biz-name js-analytics-click']/span");
-			xPathURL.add("//a[@class='biz-name js-analytics-click']/@href");
-			xPathPages.add("//div[@class='page-of-pages arrange_unit arrange_unit--fill']");
-			xPathComm.add("//div[@class='review-content']/p");
-			xPathNumComm.add("//span[@itemprop='reviewCount']");
-			xPathVal.add("//div[@class='biz-page-header-left']/div/div/div/div[@class='rating-very-large']/i/@title");
-			xPathTel.add("//span[@class='biz-phone']");
-			xPathAddress.add("//span[@itemprop='streetAddress']");
-			xPathCoord.add("//div[@class='mapbox-map']/a/img/@src");
-			mainURL = "https://www.yelp.es/search?cflt=restaurants&l=p%3AES-CA%3AC%C3%A1diz%3A%3A&find_loc=C%C3%A1diz%2C+Spain&[[start=xx]]";		
-			table_names = "rest_ye";
-			table_comm = "comm_ye";
-			table_info = "info_ye";
-			
-			break;
-		default:
-			JOptionPane.showMessageDialog(null, "You has not chosen any restaurant!");			
-			break;
-		}
+		pName = arrayParam.get(0);
+		pURL = arrayParam.get(1);
+		xPath1 = arrayParam.get(2);
+		xPath2 = arrayParam.get(3);
 	}
 	
 	public void restPagination(){
@@ -108,27 +58,7 @@ public class DisplayInfo{
 			}
 			
 			break;
-		case 2:
-			/*int pags = 7;
-			
-			URLNumPatt = 1;
-			URLorigin = mainURL;
-			URLPatt = "p=";
-			patt = "[[p=xx]]";
-			
-			for(int i = 0; i < pags; i++){
-				String newPatt = URLPatt+URLNumPatt;
-				String URLgen = URLorigin.replace(patt, newPatt);
-				
-				URLNumPatt++;
-				URLorigin = URLgen;
-				patt = newPatt;
-				
-				//System.out.println("Evaluando URL: "+URLorigin);
-				
-				downloadNameURL(URLorigin);
-			}*/
-			
+		case 2:			
 			break;
 		case 3:
 			downloadNumPagesRest(xPathPages);
@@ -153,6 +83,17 @@ public class DisplayInfo{
 		default:
 			JOptionPane.showMessageDialog(null, "You has not chosen any restaurant!");			
 			break;
+		}
+	}
+	
+	public void downloadBasicArray(String xPath){
+		HTMLParser hP = new HTMLParser(pURL, xPath);
+		arrayInfo = hP.downloadAsArray();
+	}
+	
+	public void getBasicArray(){
+		for(int i = 0; i < arrayInfo.size(); i++){
+			System.out.println("Info: "+arrayInfo.get(i));
 		}
 	}
 	
@@ -224,7 +165,7 @@ public class DisplayInfo{
 		return str;
 	}
 	
-	public void downloadNumPagesRest(ArrayList<String> xPathPages){
+	public void downloadNumPagesRest(String xPathPages){
 		String numPagesStr;		
 		HTMLParser hP = new HTMLParser(mainURL, xPathPages);
 		

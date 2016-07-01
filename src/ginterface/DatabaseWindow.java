@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import database.ConnectDB;
-import htmlparser.DisplayInfo;
+import htmlparser.InfoStorer;
 
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
@@ -21,10 +21,10 @@ import javax.swing.SwingConstants;
 public class DatabaseWindow extends JFrame{
 
 	private JPanel contentPane;
-	private DisplayInfo dI;
+	private InfoStorer dI;
 	private ConnectDB db = new ConnectDB();
 
-	public DatabaseWindow(DisplayInfo dI){
+	public DatabaseWindow(InfoStorer dI){
 		this.dI = dI;
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
