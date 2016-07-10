@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+	<element name="conf">
+		<complexType>
+			<sequence>
+				<element type="anyURI" name="url"/>
+				<element name="entities">
+					<complexType>
+						<sequence>
+							<element type="string" name="main_entity"/>
+							<element name="sec_entity" maxOccurs="10" minOccurs="0">
+								<complexType>
+									<sequence>
+										<element type="string" name="name"/>
+										<element type="string" name="rule"/>
+									</sequence>
+								</complexType>
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+				<element name="attributes">
+					<complexType>
+						<sequence>
+							<element name="field" maxOccurs="10" minOccurs="1">
+								<complexType>
+									<sequence>
+										<element type="string" name="name"/>
+										<element type="string" name="rule"/>
+									</sequence>
+									<attribute type="string" name="ftype" use="optional"/>
+								</complexType>
+							</element>
+						</sequence>
+					</complexType>
+				</element>
+			</sequence>
+			<attribute type="string" name="name"/>
+			<attribute type="string" name="cat"/>
+		</complexType>
+	</element>
+</schema>

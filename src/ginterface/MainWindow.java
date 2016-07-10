@@ -91,25 +91,30 @@ public class MainWindow extends JFrame{
         btnParseWeb.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		if(fil != null){
-        			XMLReader xR = new XMLReader();
-        			ArrayList<String> arrayParam = new ArrayList<String>();
-        			
         			try{
-        				arrayParam = xR.readFile(textField.getText());
+        				String xml = textField.getText();
+        				
+        				XMLReader xR = new XMLReader(xml);
+        				
+        				if(xR.validateFile()){
+        					xR.readFile();
+        					JOptionPane.showMessageDialog(null, "SUCCESS!!");
+        				}
+        				else{
+        					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
+        				}
 					}catch(Exception ex){
 						ex.printStackTrace();
 					}
         			
-        			iS = new InfoStorer(arrayParam);
+        			/*iS = new InfoStorer(arrayParam);
         			iS.initializePortalParameters();
         			
         			iS.downloadBasicArray(iS.xPath1);
-        			iS.getBasicArray();        			
-        			
-    				JOptionPane.showMessageDialog(null, "SUCCESS!!");
+        			iS.getBasicArray();*/
         		}
         		else{
-        			JOptionPane.showMessageDialog(null, "ERROR!!");
+        			JOptionPane.showMessageDialog(null, "Error: Didn't load file or wrong file!");
         		}
         	}
         });
