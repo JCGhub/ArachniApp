@@ -87,8 +87,8 @@ public class MainWindow extends JFrame{
         scroll.setBounds(52, 42, 360, 156);
         contentPane.add(scroll);
         
-        JButton btnParseWeb = new JButton("Parse web");
-        btnParseWeb.addActionListener(new ActionListener() {
+        JButton btnProcFile = new JButton("Process file");
+        btnProcFile.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
         		if(fil != null){
         			try{
@@ -97,8 +97,14 @@ public class MainWindow extends JFrame{
         				XMLReader xR = new XMLReader(xml);
         				
         				if(xR.validateFile()){
-        					xR.readFile();
+        					xR.readFile();        					
+        					iS = new InfoStorer(xR);
+        					
         					JOptionPane.showMessageDialog(null, "SUCCESS!!");
+        					
+        					ParserWindow pW = new ParserWindow(iS);        					
+        					pW.setVisible(true);
+        					dispose();
         				}
         				else{
         					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
@@ -106,20 +112,14 @@ public class MainWindow extends JFrame{
 					}catch(Exception ex){
 						ex.printStackTrace();
 					}
-        			
-        			/*iS = new InfoStorer(arrayParam);
-        			iS.initializePortalParameters();
-        			
-        			iS.downloadBasicArray(iS.xPath1);
-        			iS.getBasicArray();*/
         		}
         		else{
         			JOptionPane.showMessageDialog(null, "Error: Didn't load file or wrong file!");
         		}
         	}
         });
-        btnParseWeb.setBounds(312, 216, 100, 23);
-        contentPane.add(btnParseWeb);
+        btnProcFile.setBounds(294, 216, 118, 23);
+        contentPane.add(btnProcFile);
         
         JButton btnExit = new JButton("Exit");
 		btnExit.addActionListener(new ActionListener() {

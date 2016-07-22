@@ -22,11 +22,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class XMLReader{
-	ArrayList<String> arrayConfAtt = new ArrayList<String>();
+	ArrayList<String> arrayMainEnt = new ArrayList<String>();
+	ArrayList<String> arrayConfAttributes = new ArrayList<String>();
+	ArrayList<ArrayList<String>> arrayPredEnt = new ArrayList<ArrayList<String>>();
 	ArrayList<ArrayList<String>> arraySecEnt = new ArrayList<ArrayList<String>>();
 	ArrayList<ArrayList<String>> arrayAtt = new ArrayList<ArrayList<String>>();
 	Document xmlFile;
-	String xml, url, mainEnt;
+	String xml, url;
 	
 	public XMLReader(String xml) throws Exception{
 		this.xml = xml;
@@ -41,7 +43,7 @@ public class XMLReader{
 	public boolean validateFile(){
 		try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new File("confGen.xsd"));
+            Schema schema = factory.newSchema(new File("confGen2.xsd"));
             
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(new File(xml)));
@@ -58,9 +60,9 @@ public class XMLReader{
 		//Extraemos los atributos de la etiqueta conf
 		
 		String confAtt1 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("name").getNodeValue();
-		arrayConfAtt.add(confAtt1);
+		arrayConfAttributes.add(confAtt1);
     	String confAtt2 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("cat").getNodeValue();
-    	arrayConfAtt.add(confAtt2);
+    	arrayConfAttributes.add(confAtt2);
     	
     	System.out.println("Configuration file \""+confAtt1+"\", Category: "+confAtt2);
 		System.out.println("----------------------------------------\n");
@@ -80,10 +82,48 @@ public class XMLReader{
     		
     		Node entityNode = entitiesList.item(i);
 			Element entity = (Element)entityNode;
+			
+			//Extraemos la entidad principal
 
 			Node mainEntNode = entity.getElementsByTagName("main_entity").item(0);
-			mainEnt = mainEntNode.getFirstChild().getNodeValue();
-			System.out.println("Main entity: "+mainEnt);
+			
+			String mainEntSize = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("size").getNodeValue();
+			arrayMainEnt.add(mainEntSize);
+			System.out.println("Size: "+mainEntSize);
+			
+			arrayMainEnt.add(mainEntNode.getFirstChild().getNodeValue());
+			System.out.println("Main entity: "+arrayMainEnt.get(1));
+			
+			//Extraemos las entidades predeterminadas
+			
+			NodeList predEntList = entity.getElementsByTagName("pred_entity");
+			
+			for(int j = 0; j < predEntList.getLength(); j++){
+				ArrayList<String> arrayCurrPredEnt = new ArrayList<String>();
+				
+				System.out.println("\nPredeterminate entity: ");
+				
+	    		Node predEntNode = predEntList.item(j);
+				Element predEnt = (Element)predEntNode;
+				
+				String predType = xmlFile.getElementsByTagName("pred_entity").item(0).getAttributes().getNamedItem("type").getNodeValue();
+				arrayCurrPredEnt.add(predType);
+				System.out.println("Type: "+predType);
+				
+				Node nameNode = predEnt.getElementsByTagName("name").item(0);
+				String name = nameNode.getFirstChild().getNodeValue();
+				arrayCurrPredEnt.add(name);
+		    	System.out.println("Name: "+name);
+		    	
+		    	Node ruleNode = predEnt.getElementsByTagName("rule").item(0);
+				String rule = ruleNode.getFirstChild().getNodeValue();
+				arrayCurrPredEnt.add(rule);
+		    	System.out.println("Rule: "+rule);
+		    	
+		    	arrayPredEnt.add(arrayCurrPredEnt);
+	    	}
+			
+			//Extraemos las entidades secundarias
 			
 			NodeList secEntList = entity.getElementsByTagName("sec_entity");
 			
@@ -131,7 +171,7 @@ public class XMLReader{
 				Element field = (Element)fieldNode;
 				
 				if(fieldNode.hasAttributes()){
-					String fieldAtt = fieldNode.getAttributes().getNamedItem("ftype").getNodeValue();
+					String fieldAtt = fieldNode.getAttributes().getNamedItem("type").getNodeValue();
 					arrayCurrAtt.add(fieldAtt);
 					System.out.println("Field att: "+fieldAtt);
 				}
@@ -155,8 +195,8 @@ public class XMLReader{
 		return url;
 	}
 	
-	public String getMainEnt(){
-		return mainEnt;
+	public ArrayList<String> getMainEnt(){
+		return arrayMainEnt;
 	}
 	
 	public ArrayList<ArrayList<String>> getSecEnt(){
@@ -164,7 +204,7 @@ public class XMLReader{
 	}
 	
 	public ArrayList<String> getConfAtt(){
-		return arrayConfAtt;
+		return arrayConfAttributes;
 	}
 	
 	public ArrayList<ArrayList<String>> getAtt(){

@@ -147,9 +147,9 @@ public class HTMLParser{
         return null;     
     }
 	
-	public String downloadAsString(String namePortal, String data){
+	public String downloadAsString(/*String namePortal, String data*/){
 		if(!(xPath1.isEmpty())){
-        	String result, resultCod = "", comma = "";
+        	String result, resultCod = ""/*, comma = ""*/;
             
             try {
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
@@ -161,20 +161,21 @@ public class HTMLParser{
 
                 for(int i = 0; i < nodes.getLength(); i++) {
                     result = nodes.item(i).getTextContent();
+                    resultCod = StringEscapeUtils.unescapeHtml4(result);
                         
-                    if(data == "coord"){
+                    /*if(data == "coord"){
                     	resultCod = resultCod+comma+result;
                         resultCod = StringEscapeUtils.unescapeHtml4(resultCod);
                         comma = ", ";
                     }
                     else{
                         resultCod = StringEscapeUtils.unescapeHtml4(result);
-                    }
+                    }*/
                 }
                     
-                dF = new DataFixer(namePortal);
+                //dF = new DataFixer(namePortal);
                     
-                switch(data){
+                /*switch(data){
                 case "val":
                 	resultCod = dF.fixVal(resultCod);
                     break;
@@ -189,7 +190,7 @@ public class HTMLParser{
                     break;
                 default:
                     break;
-                }
+                }*/
                 
                 return resultCod;
             } catch (XPathExpressionException e) {
