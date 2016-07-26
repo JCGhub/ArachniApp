@@ -45,6 +45,7 @@
 										<element type="string" name="name"/>
 										<element type="string" name="rule"/>
 									</sequence>
+									<attribute type="string" name="size" use="required"/>
 									<attribute type="string" name="type" use="optional"/>
 								</complexType>
 							</element>

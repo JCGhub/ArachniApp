@@ -10,46 +10,63 @@ import javax.swing.JOptionPane;
 
 import org.w3c.dom.Document;
 
-public class InfoStorer{
+public class InfoDownloader{
 	ArrayList<String> arrayData = new ArrayList<String>();
-	ArrayList<String> arrayMainEnt = new ArrayList<String>();
-	public String strData, url;	
-	XMLReader xR;
-	ArrayList<String> arrayConfAtt = new ArrayList<String>();
-	ArrayList<ArrayList<String>> arraySecEnt = new ArrayList<ArrayList<String>>();
-	ArrayList<ArrayList<String>> arrayAtt = new ArrayList<ArrayList<String>>();
+	String strData;
 	
-	public InfoStorer(XMLReader xR){
-		this.xR = xR;
-		
-		arrayConfAtt = xR.getConfAtt();
-		url = xR.getURL();
-		arrayMainEnt = xR.getMainEnt();
-		arraySecEnt = xR.getSecEnt();
-		arrayAtt = xR.getAtt();
-	}
+	public InfoDownloader(){}
 	
-	public void downloadArray(String xPath){
+	public ArrayList<String> downloadArray(String url, String xPath, String pred){
 		HTMLParser hP = new HTMLParser(url, xPath);
 		arrayData = hP.downloadAsArray();
+		
+		return arrayData;
 	}
 	
-	public void downloadString(String xPath){
+	public String downloadString(String url, String xPath){
 		HTMLParser hP = new HTMLParser(url, xPath);
 		strData = hP.downloadAsString();
+		
+		return strData;
+	}
+	
+	public ArrayList<String> completeURLs(ArrayList<String> array, String s){
+		ArrayList<String> aAux = new ArrayList<String>();
+		
+		for(int i = 0; i < array.size(); i++){
+			String sAux = array.get(i);
+			String compl = s + sAux;
+			aAux.add(compl);
+		}
+		
+		return aAux;
 	}
 	
 	public ArrayList<String> getArray(){
 		return arrayData;
 	}
 	
-	public String getXPathMainEnt(){
-		return arrayMainEnt.get(1);
+	public String getString(){
+		return strData;
 	}
 	
-	public void showArray(){
-		for(int i = 0; i < arrayData.size(); i++){
-			System.out.println(i+": "+arrayData.get(i));
+	public void showArrayData(ArrayList<String> array){		
+		if(!(array == null)){
+			for(int i = 0; i < array.size(); i++){
+				System.out.println(i+": "+array.get(i));
+			}
+		}
+		else{
+			System.out.println("El array está vacío");
+		}
+	}
+	
+	public void showStrData(String str){
+		if(!(str.isEmpty())){
+			System.out.println(str);
+		}
+		else{
+			System.out.println("El string está vacío");
 		}
 	}
 	

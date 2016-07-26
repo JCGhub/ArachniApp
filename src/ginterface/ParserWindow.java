@@ -13,15 +13,17 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import htmlparser.InfoStorer;
+import htmlparser.InfoDownloader;
+import htmlparser.InfoOrganizator;
+import htmlparser.XMLReader;
 
 public class ParserWindow extends JFrame {
 
 	private JPanel contentPane;
-	private InfoStorer iS;
+	private XMLReader xR;
 	
-	public ParserWindow(InfoStorer iS){
-		this.iS = iS;
+	public ParserWindow(XMLReader xR){
+		this.xR = xR;
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 315, 234);
@@ -59,15 +61,19 @@ public class ParserWindow extends JFrame {
 		contentPane.add(btnShowData);
 		
 		JButton btnParseWeb = new JButton("Parse web");
-		btnParseWeb.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String xPathMainEnt = iS.getXPathMainEnt();
+		btnParseWeb.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				InfoOrganizator iO = xR.infoReady();
 				
-				System.out.println("\n"+xPathMainEnt);
+				xR.showArrayConfAtt();
+				xR.showArrayMainEnt();
+				xR.showArrayPredEnt();
+				xR.showArraySecEnt();
+				xR.showArrayAtt();
 				
-				iS.downloadArray(xPathMainEnt);
+				iO.mainExec();
 				
-				iS.showArray();
+				//iS.showArrayData();
 			}
 		});
 		btnParseWeb.setBounds(96, 110, 110, 23);

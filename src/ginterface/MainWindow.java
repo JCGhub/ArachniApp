@@ -9,7 +9,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
-import htmlparser.InfoStorer;
 import htmlparser.XMLReader;
 
 import javax.swing.JLabel;
@@ -30,7 +29,6 @@ import javax.swing.SwingConstants;
 public class MainWindow extends JFrame{
 
 	private JPanel contentPane;
-	private InfoStorer iS;
 	private JTextField textField;
 	private JTextArea textArea;
 	JFileChooser fC = new JFileChooser();
@@ -97,12 +95,11 @@ public class MainWindow extends JFrame{
         				XMLReader xR = new XMLReader(xml);
         				
         				if(xR.validateFile()){
-        					xR.readFile();        					
-        					iS = new InfoStorer(xR);
+        					xR.readFile();
         					
         					JOptionPane.showMessageDialog(null, "SUCCESS!!");
         					
-        					ParserWindow pW = new ParserWindow(iS);        					
+        					ParserWindow pW = new ParserWindow(xR);        					
         					pW.setVisible(true);
         					dispose();
         				}
