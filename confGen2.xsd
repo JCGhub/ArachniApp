@@ -1,60 +1,100 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
-	<element name="conf">
-		<complexType>
-			<sequence>
-				<element type="anyURI" name="url"/>
-				<element name="entities">
-					<complexType>
-						<sequence>
-							<element name="main_entity">
-								<complexType>
-									<simpleContent>
-										<extension base="string">
-											<attribute type="string" name="size" use="required"/>
-										</extension>
-									</simpleContent>
-								</complexType>
-							</element>
-							<element name="pred_entity" maxOccurs="10" minOccurs="0">
-								<complexType>
-									<sequence>
-										<element type="string" name="name"/>
-										<element type="string" name="rule"/>
-									</sequence>
-									<attribute type="string" name="type" use="required"/>
-								</complexType>
-							</element>
-							<element name="sec_entity" maxOccurs="10" minOccurs="0">
-								<complexType>
-									<sequence>
-										<element type="string" name="name"/>
-										<element type="string" name="rule"/>
-									</sequence>
-								</complexType>
-							</element>
-						</sequence>
-					</complexType>
-				</element>
-				<element name="attributes">
-					<complexType>
-						<sequence>
-							<element name="field" maxOccurs="10" minOccurs="1">
-								<complexType>
-									<sequence>
-										<element type="string" name="name"/>
-										<element type="string" name="rule"/>
-									</sequence>
-									<attribute type="string" name="size" use="required"/>
-									<attribute type="string" name="type" use="optional"/>
-								</complexType>
-							</element>
-						</sequence>
-					</complexType>
-				</element>
-			</sequence>
-			<attribute type="string" name="name"/>
-			<attribute type="string" name="cat"/>
-		</complexType>
-	</element>
-</schema>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified">
+	<xs:element name="conf">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element type="xs:anyURI" name="url"/>
+				<xs:element name="entities">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="main_entity">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element type="xs:string" name="rule"/>
+										<xs:element type="xs:string" name="url_root" minOccurs="0" maxOccurs="1"/>
+									</xs:sequence>
+									<xs:attribute name="size" use="required">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="simple"/>
+												<xs:enumeration value="multiple"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="url" use="required">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="complete"/>
+												<xs:enumeration value="incomplete"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="pred_entity" maxOccurs="10" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element type="xs:string" name="name"/>
+										<xs:element type="xs:string" name="rule"/>
+									</xs:sequence>
+									<xs:attribute name="type" use="required">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="PRED_NEXTPAGE_BTN"/>
+												<xs:enumeration value="PRED_NEXTPAGE_PATT"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="attributes">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="field" maxOccurs="10" minOccurs="1">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element type="xs:string" name="name"/>
+										<xs:element type="xs:string" name="rule"/>
+									</xs:sequence>
+									<xs:attribute name="size" use="required">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="simple"/>
+												<xs:enumeration value="multiple"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="type" use="optional">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="key"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute type="xs:string" name="name" use="required"/>
+			<xs:attribute name="cat" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="Restaurantes"/>
+						<xs:enumeration value="Hoteles"/>
+						<xs:enumeration value="Noticias"/>
+						<xs:enumeration value="Deportes"/>
+						<xs:enumeration value="Académico"/>
+						<xs:enumeration value="Científico"/>
+						<xs:enumeration value="Entretenimiento"/>
+						<xs:enumeration value="Varios"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

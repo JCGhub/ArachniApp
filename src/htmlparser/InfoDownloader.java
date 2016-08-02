@@ -30,6 +30,12 @@ public class InfoDownloader{
 		return strData;
 	}
 	
+	public void downloadContent(String url) throws Exception{
+		HTMLParser hP = new HTMLParser(url);
+        StringBuffer response = hP.downloadContent();        
+        System.out.println(response);
+	}
+	
 	public ArrayList<String> completeURLs(ArrayList<String> array, String s){
 		ArrayList<String> aAux = new ArrayList<String>();
 		
@@ -42,6 +48,82 @@ public class InfoDownloader{
 		return aAux;
 	}
 	
+	public String completeURL(String url, String s){		
+		return s+url;
+	}
+	
+	public ArrayList<String> nextPagesBtn(String url, String nextPageXPath, String mainEntXPath, String urlRoot){
+		ArrayList<String> currArray = new ArrayList<String>();
+		ArrayList<String> multMainEnt = new ArrayList<String>();
+		String currUrl = url, prevUrl = "";
+		boolean lastPage = false;
+		
+		while(!(downloadString(currUrl, nextPageXPath).isEmpty()) || lastPage == false){
+			if(downloadString(currUrl, nextPageXPath).isEmpty() && lastPage == false){
+				currArray = downloadArray(currUrl, mainEntXPath, null);
+				lastPage = true;
+				
+				if(urlRoot != null){
+					currArray = completeURLs(currArray, urlRoot);
+				}
+				
+				for(int i = 0; i < currArray.size(); i++){
+					multMainEnt.add(currArray.get(i));
+				}
+			}
+			else{
+				String nextUrl = downloadString(currUrl, nextPageXPath);
+					
+				if(urlRoot != null){
+					System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
+					System.out.println("** prevUrl: "+prevUrl);
+					if(!(completeURL(nextUrl, urlRoot).equals(prevUrl))){
+						currArray = downloadArray(currUrl, mainEntXPath, null);						
+						currArray = completeURLs(currArray, urlRoot);
+						
+						prevUrl = currUrl;
+						currUrl = completeURL(nextUrl, urlRoot);
+					}
+					else{
+						currArray = downloadArray(currUrl, mainEntXPath, null);						
+						currArray = completeURLs(currArray, urlRoot);
+						
+						for(int i = 0; i < currArray.size(); i++){
+							multMainEnt.add(currArray.get(i));
+						}
+						
+						return multMainEnt;
+					}
+				}
+				else{
+					System.out.println("** nextUrl: "+nextUrl);
+					System.out.println("** prevUrl: "+prevUrl);
+					if(nextUrl != prevUrl){
+						currArray = downloadArray(currUrl, mainEntXPath, null);
+						
+						prevUrl = currUrl;
+						currUrl = nextUrl;
+					}
+					else{
+						currArray = downloadArray(currUrl, mainEntXPath, null);
+						
+						for(int i = 0; i < currArray.size(); i++){
+							multMainEnt.add(currArray.get(i));
+						}
+						
+						return multMainEnt;
+					}
+				}
+					
+				for(int i = 0; i < currArray.size(); i++){
+					multMainEnt.add(currArray.get(i));
+				}
+			}
+		}
+
+		return multMainEnt;
+	}
+	
 	public ArrayList<String> getArray(){
 		return arrayData;
 	}
@@ -50,7 +132,7 @@ public class InfoDownloader{
 		return strData;
 	}
 	
-	public void showArrayData(ArrayList<String> array){		
+	public void showArrayData(ArrayList<String> array){
 		if(!(array == null)){
 			for(int i = 0; i < array.size(); i++){
 				System.out.println(i+": "+array.get(i));

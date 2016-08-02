@@ -97,11 +97,17 @@ public class MainWindow extends JFrame{
         				if(xR.validateFile()){
         					xR.readFile();
         					
-        					JOptionPane.showMessageDialog(null, "SUCCESS!!");
-        					
-        					ParserWindow pW = new ParserWindow(xR);        					
-        					pW.setVisible(true);
-        					dispose();
+        					if(xR.urlExc == true){
+        						JOptionPane.showMessageDialog(null, "Error: There is not an 'url_root' element for an incomplete URL");
+            					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
+        					}
+        					else{
+        						JOptionPane.showMessageDialog(null, "SUCCESS!!");
+            					
+            					ParserWindow pW = new ParserWindow(xR);        					
+            					pW.setVisible(true);
+            					dispose();
+        					}        					
         				}
         				else{
         					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");

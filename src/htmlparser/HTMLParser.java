@@ -8,6 +8,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import javax.net.ssl.HttpsURLConnection;
 import javax.swing.JOptionPane;
@@ -75,6 +78,9 @@ public class HTMLParser{
         if(!(xPath1.isEmpty())){
             ArrayList<String> results = new ArrayList<String>();
             
+            System.out.println("Url: "+URL);
+            //System.out.println("XPath: "+xPath1);
+            
             try{
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
                 doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
@@ -82,11 +88,15 @@ public class HTMLParser{
                 XPath xpath = XPathFactory.newInstance().newXPath();
                 
                 NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
-
+                
+                System.out.println("Nodes size: "+nodes.getLength());
+                
                 for (int i = 0; i < nodes.getLength(); i++) {
                 	String str = nodes.item(i).getTextContent();
                     String strCod = StringEscapeUtils.unescapeHtml4(str);
-                    	
+                    
+                    //System.out.println("Current strCod: "+strCod);
+                    
                     results.add(strCod);
                 }
                 
@@ -148,9 +158,12 @@ public class HTMLParser{
         return null;     
     }
 	
-	public String downloadAsString(/*String namePortal, String data*/){
+	public String downloadAsString(){
 		if(!(xPath1.isEmpty())){
-        	String result, resultCod = ""/*, comma = ""*/;
+        	String result, resultCod = "";
+        	
+        	//System.out.println("url: "+URL);
+        	//System.out.println("xPath1: "+xPath1);
             
             try {
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
@@ -159,39 +172,13 @@ public class HTMLParser{
                 XPath xpath = XPathFactory.newInstance().newXPath();
 
                 NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
-
+                
+                //System.out.println("nodes.getLength(): "+nodes.getLength());
+                
                 for(int i = 0; i < nodes.getLength(); i++) {
                     result = nodes.item(i).getTextContent();
                     resultCod = StringEscapeUtils.unescapeHtml4(result);
-                        
-                    /*if(data == "coord"){
-                    	resultCod = resultCod+comma+result;
-                        resultCod = StringEscapeUtils.unescapeHtml4(resultCod);
-                        comma = ", ";
-                    }
-                    else{
-                        resultCod = StringEscapeUtils.unescapeHtml4(result);
-                    }*/
                 }
-                    
-                //dF = new DataFixer(namePortal);
-                    
-                /*switch(data){
-                case "val":
-                	resultCod = dF.fixVal(resultCod);
-                    break;
-                case "numPagesRest":
-                    resultCod = dF.fixNumPages(resultCod);
-                    break;
-                case "tel":
-                    resultCod = dF.fixTel(resultCod);
-                    break;
-                case "coord":
-                    resultCod = dF.fixCoord(resultCod);
-                    break;
-                default:
-                    break;
-                }*/
                 
                 return resultCod;
             } catch (XPathExpressionException e) {
@@ -208,14 +195,22 @@ public class HTMLParser{
         return null;     
     }
 	
+    public StringBuffer downloadContent() throws Exception {
+        return doRequest();
+    }
+    
+    public StringBuffer downloadContent(int bytes) throws Exception {
+        return doRequest(bytes);
+    }
+	
 	private StringBuffer doRequest() throws Exception {
         return doRequest(-1);
     }
     
     private StringBuffer doRequest(int bytes) throws Exception {
-        String urlParameters = getParameters(); 
-        
+        String urlParameters = getParameters();
         String url = URL;
+        
         if(method == Method.GET && !urlParameters.isEmpty()) {
             if(url.endsWith("&") || url.endsWith("?")) {
                 url = url + urlParameters;
@@ -223,6 +218,8 @@ public class HTMLParser{
                 url = url + "?" + urlParameters;
             }
         }
+        
+        CookieHandler.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
         
         URL obj = new URL(url);
         
@@ -242,6 +239,18 @@ public class HTMLParser{
             methodName = "POST";
         }
         con.setRequestMethod(methodName);
+        
+        requestProperties.add(new KeyValue("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"));
+        requestProperties.add(new KeyValue("Accept-Language", "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3"));
+        requestProperties.add(new KeyValue("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
+        //requestProperties.add(new KeyValue("Accept-Encoding", "gzip, deflate"));
+        requestProperties.add(new KeyValue("Connection", "keep-alive"));
+        requestProperties.add(new KeyValue("Content-Type", "application/x-www-form-urlencoded"));
+        requestProperties.add(new KeyValue("Cache-Control", "no-cache"));        
+        requestProperties.add(new KeyValue("Content-Type", "application/json"));
+        requestProperties.add(new KeyValue("charset","utf-8"));
+        requestProperties.add(new KeyValue("Accept", "application/json"));
+        requestProperties.add(new KeyValue("Content-Type", "application/json;charset=UTF-8"));
         
         for(KeyValue par: requestProperties) {
             con.setRequestProperty(par.key, par.value);
@@ -269,7 +278,13 @@ public class HTMLParser{
         
         StringBuffer response = new StringBuffer();
         
-        //if(responseCode == 200){
+        /*if(responseCode == 200){
+        	System.out.println("La url existe");
+        }
+        else{
+        	System.out.println("La url NO existe");
+        }*/
+        
 	    logger.log("Response: " + responseCode, iLogger.Level.INFO);
 	
 	    BufferedReader in = new BufferedReader(

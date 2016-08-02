@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.JOptionPane;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,10 +27,10 @@ public class XMLReader{
 	ArrayList<String> arrayMainEnt = new ArrayList<String>();
 	ArrayList<String> arrayConfAtt = new ArrayList<String>();
 	ArrayList<ArrayList<String>> arrayPredEnt = new ArrayList<ArrayList<String>>();
-	ArrayList<ArrayList<String>> arraySecEnt = new ArrayList<ArrayList<String>>();
 	ArrayList<ArrayList<String>> arrayAtt = new ArrayList<ArrayList<String>>();
 	Document xmlFile;
 	String xml, url;
+	public boolean urlExc = false;
 	
 	public XMLReader(String xml) throws Exception{
 		this.xml = xml;
@@ -49,7 +50,8 @@ public class XMLReader{
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(new File(xml)));
         } catch (IOException | SAXException e) {
-            System.out.println("Exception: "+e.getMessage());
+            //System.out.println("Exception: "+e.getMessage());
+        	JOptionPane.showMessageDialog(null, "Exception: "+e.getMessage());
             
             return false;
         }
@@ -80,10 +82,28 @@ public class XMLReader{
 			//Extraemos la entidad principal
 
 			Node mainEntNode = entity.getElementsByTagName("main_entity").item(0);
+			Element mainEnt = (Element)mainEntNode;
 			
 			String mainEntSize = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("size").getNodeValue();
-			arrayMainEnt.add(mainEntSize);			
-			arrayMainEnt.add(mainEntNode.getFirstChild().getNodeValue());
+			arrayMainEnt.add(mainEntSize);
+			String mainEntUrlType = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("url").getNodeValue();
+			arrayMainEnt.add(mainEntUrlType);
+	    	
+	    	Node ruleMENode = mainEnt.getElementsByTagName("rule").item(0);
+			String ruleME = ruleMENode.getFirstChild().getNodeValue();
+			arrayMainEnt.add(ruleME);
+			
+			if(mainEnt.getElementsByTagName("url_root").getLength() > 0 && mainEntUrlType.contains("incomplete")){
+				Node urlRootNode = mainEnt.getElementsByTagName("url_root").item(0);
+				String urlRoot = urlRootNode.getFirstChild().getNodeValue();
+				arrayMainEnt.add(urlRoot);
+			}
+			else{
+				if(mainEnt.getElementsByTagName("url_root").getLength() == 0 && mainEntUrlType.contains("incomplete")){
+					urlExc = true;					
+					return;
+				}
+			}
 			
 			//Extraemos las entidades predeterminadas
 			
@@ -95,39 +115,18 @@ public class XMLReader{
 	    		Node predEntNode = predEntList.item(j);
 				Element predEnt = (Element)predEntNode;
 				
+				String predType = xmlFile.getElementsByTagName("pred_entity").item(0).getAttributes().getNamedItem("type").getNodeValue();
+				arrayCurrPredEnt.add(predType);
+				
 				Node nameNode = predEnt.getElementsByTagName("name").item(0);
 				String name = nameNode.getFirstChild().getNodeValue();
 				arrayCurrPredEnt.add(name);
 		    	
-		    	Node ruleNode = predEnt.getElementsByTagName("rule").item(0);
-				String rule = ruleNode.getFirstChild().getNodeValue();
-				arrayCurrPredEnt.add(rule);
-				
-				String predType = xmlFile.getElementsByTagName("pred_entity").item(0).getAttributes().getNamedItem("type").getNodeValue();
-				arrayCurrPredEnt.add(predType);
+		    	Node rulePENode = predEnt.getElementsByTagName("rule").item(0);
+				String rulePE = rulePENode.getFirstChild().getNodeValue();
+				arrayCurrPredEnt.add(rulePE);
 		    	
 		    	arrayPredEnt.add(arrayCurrPredEnt);
-	    	}
-			
-			//Extraemos las entidades secundarias
-			
-			NodeList secEntList = entity.getElementsByTagName("sec_entity");
-			
-			for(int j = 0; j < secEntList.getLength(); j++){
-				ArrayList<String> arrayCurrSecEnt = new ArrayList<String>();
-				
-	    		Node secEntNode = secEntList.item(j);
-				Element secEnt = (Element)secEntNode;
-				
-				Node nameNode = secEnt.getElementsByTagName("name").item(0);
-				String name = nameNode.getFirstChild().getNodeValue();
-				arrayCurrSecEnt.add(name);
-		    	
-		    	Node ruleNode = secEnt.getElementsByTagName("rule").item(0);
-				String rule = ruleNode.getFirstChild().getNodeValue();
-				arrayCurrSecEnt.add(rule);
-		    	
-		    	arraySecEnt.add(arrayCurrSecEnt);
 	    	}
     	}
     	
@@ -172,7 +171,7 @@ public class XMLReader{
 	}
 	
 	public InfoOrganizator infoReady(){
-    	InfoOrganizator iO = new InfoOrganizator(url, arrayConfAtt, arrayMainEnt, arrayPredEnt, arraySecEnt, arrayAtt);
+    	InfoOrganizator iO = new InfoOrganizator(url, arrayConfAtt, arrayMainEnt, arrayPredEnt, arrayAtt);
 	
     	return iO;
 	}
@@ -208,27 +207,11 @@ public class XMLReader{
 			currArrayPredEnt = arrayPredEnt.get(i);
 			
 			for(int j = 0; j < currArrayPredEnt.size(); j++){
-				System.out.println("Ent. Sec. "+i+": "+currArrayPredEnt.get(j));
+				System.out.println("Ent. Pred. "+i+": "+currArrayPredEnt.get(j));
 			}
 		}
 		
 		System.out.println("******************************************************************\n");
-	}
-	
-	public void showArraySecEnt(){
-		System.out.println("*****  MOSTRANDO ARRAY QUE DEVUELVE EL CONTENIDO DE secEnt  *****");
-		
-		for(int i = 0; i < arraySecEnt.size(); i++){
-			ArrayList<String> currArraySecEnt = new ArrayList<String>();
-			
-			currArraySecEnt = arraySecEnt.get(i);
-			
-			for(int j = 0; j < currArraySecEnt.size(); j++){
-				System.out.println("Ent. Sec. "+i+": "+currArraySecEnt.get(j));
-			}
-		}
-		
-		System.out.println("*****************************************************************\n");
 	}
 	
 	public void showArrayAtt(){
@@ -245,5 +228,9 @@ public class XMLReader{
 		}
 		
 		System.out.println("*********************************************************************\n");
+	}
+	
+	public String getUrl(){
+		return url;
 	}
 }

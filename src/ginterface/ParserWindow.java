@@ -45,31 +45,34 @@ public class ParserWindow extends JFrame {
 		JButton btnSummary = new JButton("Summary");
 		btnSummary.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				
+				xR.showArrayConfAtt();
+				xR.showArrayMainEnt();
+				xR.showArrayPredEnt();
+				xR.showArrayAtt();
 			}
 		});
 		btnSummary.setBounds(37, 36, 99, 23);
 		contentPane.add(btnSummary);
 		
-		JButton btnShowData = new JButton("Show data");
-		btnShowData.addActionListener(new ActionListener() {
+		JButton btnWebContent = new JButton("Web Content");
+		btnWebContent.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				InfoDownloader iD = new InfoDownloader();
 				
+				try {
+					iD.downloadContent(xR.getUrl());
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
 			}
 		});
-		btnShowData.setBounds(164, 36, 99, 23);
-		contentPane.add(btnShowData);
+		btnWebContent.setBounds(164, 36, 99, 23);
+		contentPane.add(btnWebContent);
 		
 		JButton btnParseWeb = new JButton("Parse web");
 		btnParseWeb.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				InfoOrganizator iO = xR.infoReady();
-				
-				xR.showArrayConfAtt();
-				xR.showArrayMainEnt();
-				xR.showArrayPredEnt();
-				xR.showArraySecEnt();
-				xR.showArrayAtt();
 				
 				iO.mainExec();
 				
