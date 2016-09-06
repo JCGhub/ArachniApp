@@ -20,8 +20,10 @@ public class ConnectDB{
             Conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/"+db_name, user, pass);
             System.out.println("Successful connection with the server!");
         } catch (ClassNotFoundException ex) {
+        	System.out.println("ERROR: Unsuccessful connection with the server!");
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
+        	System.out.println("ERROR: Unsuccessful connection with the server!");
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -31,125 +33,121 @@ public class ConnectDB{
             Conn.close();
             System.out.println("Successful disconnection with the server!");
         } catch (SQLException ex) {
+        	System.out.println("ERROR: Unsuccessful disconnection with the server!");
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
  
-    public void createDB(String name) {
+    public void createTables() {
         try {
-            String Query = "CREATE DATABASE " + name;
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "The database " + name + " has been created successfully!");
-        } catch (SQLException ex) {
-            Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
- 
-    public void createTableNames(String name){
-        try {
-            String Query = "CREATE TABLE "+ name + ""
-            		+ "(idRest int(255) NOT NULL AUTO_INCREMENT, "
-            		+ "nRest text NOT NULL, "
-            		+ "nRestKey text NOT NULL, "
-            		+ "urlRest text NOT NULL, "
-            		+ "idComm int(255), "
-            		+ "idVal int(255), "
-            		+ "idInfo int(255), "
-            		+ "PRIMARY KEY(idRest))"
-            		+ "ENGINE=InnoDB DEFAULT CHARSET=latin1";
+            /*String createDBQuery = "CREATE DATABASE IF NOT EXISTS " + name + " "
+            		+ "DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;\n";*/
+            		
+            String catQuery = "CREATE TABLE category "
+            		+ "(id int(255) NOT NULL AUTO_INCREMENT, "
+            		+ "name varchar(50) NOT NULL, "
+            		+ "PRIMARY KEY(id))"
+            		+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+            		
+            String confQuery = "CREATE TABLE conf_file "
+					+ "(id int(255) NOT NULL AUTO_INCREMENT, "
+					+ "name varchar(100) NOT NULL, "
+					+ "category varchar(50) NOT NULL, "
+					+ "PRIMARY KEY(id))"
+					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					
+			String intQuery = "CREATE TABLE integer_info "
+					+ "(id int(255) NOT NULL AUTO_INCREMENT, "
+					+ "name varchar(200) NOT NULL, "
+					+ "value bigint(255) DEFAULT NULL, "
+					+ "entity bigint(255) NOT NULL, "
+					+ "url_root varchar(255) DEFAULT NULL, "
+					+ "conf_file int(255) NOT NULL, "
+					+ "category int(255) NOT NULL, "
+					+ "PRIMARY KEY(id))"
+					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+					
+			String strQuery = "CREATE TABLE string_info "
+					+ "(id int(255) NOT NULL AUTO_INCREMENT, "
+					+ "name varchar(200) NOT NULL, "
+					+ "value text, "
+					+ "entity bigint(255) NOT NULL, "
+					+ "url_root varchar(255) DEFAULT NULL, "
+					+ "conf_file int(255) NOT NULL, "
+					+ "category int(255) NOT NULL, "
+					+ "PRIMARY KEY(id))"
+					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
             
             Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "The table " + name + " has been created successfully!");
+            //st.executeUpdate(createDBQuery);
+            st.executeUpdate(catQuery);
+            st.executeUpdate(confQuery);
+            st.executeUpdate(intQuery);
+            st.executeUpdate(strQuery);
+            JOptionPane.showMessageDialog(null, "The tables have been created successfully!");
         } catch (SQLException ex) {
-            Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    public void createTableComm(String name){
-        try {
-            String Query = "CREATE TABLE "+ name + ""
-            		+ "(idComm int(255) NOT NULL AUTO_INCREMENT, "
-            		+ "idRest int(255) NOT NULL, "
-            		+ "ctext text, "
-            		+ "PRIMARY KEY(idComm))"
-            		+ "ENGINE=InnoDB DEFAULT CHARSET=latin1";
-            
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "The table " + name + " has been created successfully!");
-        } catch (SQLException ex) {
-            Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    public void createTableInfo(String name){
-        try {
-            String Query = "CREATE TABLE "+ name + ""
-            		+ "(idInfo int(255) NOT NULL AUTO_INCREMENT, "
-            		+ "idRest int(255) NOT NULL, "
-            		+ "nComm text, "
-            		+ "valoration text, "
-            		+ "address text, "
-            		+ "addressKey text, "
-            		+ "tel text, "
-            		+ "coord text, "
-            		+ "PRIMARY KEY(idInfo))"
-            		+ "ENGINE=InnoDB DEFAULT CHARSET=latin1";
-            
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "The table " + name + " has been created successfully!");
-        } catch (SQLException ex) {
+        	JOptionPane.showMessageDialog(null, "ERROR: The tables haven't been created successfully!");
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
-    public void insertDataTableNames(String tName, String nRest, String nRestKey, String urlRest){
-        try {
-            String Query = "INSERT INTO "+tName+" (idRest, nRest, nRestKey, urlRest, idComm, idVal, idInfo) "
-            		+ "VALUES (NULL, '"+nRest+"', '"+nRestKey+"', '"+urlRest+"', NULL, NULL, NULL);";
+    public void insertConfFileParams(String name, String category){
+    	try {
+            String Query = "INSERT INTO conf_file (id, name, category) "
+            		+ "VALUES (NULL, '"+name+"', '"+category+"');";
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "Data names inserted successfully!");
+            JOptionPane.showMessageDialog(null, "Configuration file params have been inserted successfully!");
         } catch (SQLException ex) {
-            //JOptionPane.showMessageDialog(null, "Error en el almacenamiento de datos del restaurante "+nRest);
+            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted successfully!");
         }
     }
     
-    public void insertDataTableComm(String tName, int idRest, String comm){
-        try {
-            String Query = "INSERT INTO "+tName+" (idComm, idRest, ctext) "
-            		+ "VALUES (NULL, '"+idRest+"', '"+comm+"');";
+    public void insertCategoryParams(String name){
+    	try {
+            String Query = "INSERT INTO category (id, name) "
+            		+ "VALUES (NULL, '"+name+"');";
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "Data comments inserted successfully!");
+            JOptionPane.showMessageDialog(null, "Category have been inserted successfully!");
         } catch (SQLException ex) {
-            //JOptionPane.showMessageDialog(null, "Error en el almacenamiento de comentarios de restaurante");
+            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted successfully!");
         }
     }
     
-    public void insertDataTableInfo(String tName, int idRest, String nComm, String valoration, String address, String addressKey, String tel, String coord){
-        try {
-            String Query = "INSERT INTO "+tName+" (idInfo, idRest, nComm, valoration, address, addressKey, tel, coord) "
-            		+ "VALUES (NULL, '"+idRest+"', '"+nComm+"', '"+valoration+"', '"+address+"', '"+addressKey+"', '"+tel+"', '"+coord+"');";
+    public void insertIntegerParams(String name, int value, int entity, String url_root, int conf_file, int category){
+    	try {
+            String Query = "INSERT INTO integer_info (id, name, value, entity, url_root, conf_file, category) "
+            		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+url_root+"', '"+conf_file+"', '"+category+"');";
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "Data comments inserted successfully!");
+            JOptionPane.showMessageDialog(null, "Integer information have been inserted successfully!");
         } catch (SQLException ex) {
-            //JOptionPane.showMessageDialog(null, "Error en el almacenamiento de comentarios de restaurante");
+            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted successfully!");
         }
     }
     
-    public ResultSet getNames(String table_name){
+    public void insertStringParams(String name, String value, int entity, String url_root, int conf_file, int category){
+    	try {
+            String Query = "INSERT INTO string_info (id, name, value, entity, url_root, conf_file, category) "
+            		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+url_root+"', '"+conf_file+"', '"+category+"');";
+            
+            Statement st = Conn.createStatement();
+            st.executeUpdate(Query);
+            JOptionPane.showMessageDialog(null, "String information have been inserted successfully!");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted successfully!");
+        }
+    }
+    
+    public ResultSet getNameFile(){
     	ResultSet rSet = null;
     	
         try {
-            String Query = "SELECT idRest, nRest, urlRest FROM " + table_name;
+            String Query = "SELECT name FROM conf_file";
             
             Statement st = Conn.createStatement();
             rSet = st.executeQuery(Query);
@@ -161,13 +159,61 @@ public class ConnectDB{
         return rSet;
     }
     
-    public void deleteTable(String name) {
+    public ResultSet getCategory(){
+    	ResultSet rSet = null;
+    	
         try {
-            String Query = "DROP TABLE "+ name + "";
+            String Query = "SELECT name FROM category";
+            
+            Statement st = Conn.createStatement();
+            rSet = st.executeQuery(Query);
+ 
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error en la adquisici�n de datos");
+        }
+        
+        return rSet;
+    }
+    
+    public ResultSet getConfFileId(String name){
+    	ResultSet rSet = null;
+    	
+        try {
+            String Query = "SELECT id FROM conf_file WHERE name='"+name+"'";
+            
+            Statement st = Conn.createStatement();
+            rSet = st.executeQuery(Query);
+ 
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error en la adquisici�n de datos");
+        }
+        
+        return rSet;
+    }
+    
+    public ResultSet getCategoryId(String cat){
+    	ResultSet rSet = null;
+    	
+        try {
+            String Query = "SELECT id FROM category WHERE name='"+cat+"'";
+            
+            Statement st = Conn.createStatement();
+            rSet = st.executeQuery(Query);
+ 
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error en la adquisici�n de datos");
+        }
+        
+        return rSet;
+    }
+    
+    public void deleteTables() {
+        try {
+            String Query = "DROP TABLE category, conf_file, integer_info, string_info";
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "The table " + name + " has been deleted successfully!");
+            JOptionPane.showMessageDialog(null, "The tables have been deleted successfully!");
         } catch (SQLException ex) {
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }

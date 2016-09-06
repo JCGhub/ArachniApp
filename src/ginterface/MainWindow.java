@@ -9,6 +9,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
+import database.ConnectDB;
+import htmlparser.InfoDownloader;
 import htmlparser.XMLReader;
 
 import javax.swing.JLabel;
@@ -33,6 +35,7 @@ public class MainWindow extends JFrame{
 	private JTextArea textArea;
 	JFileChooser fC = new JFileChooser();
 	File fil;
+	ConnectDB db = new ConnectDB();
 
 	public MainWindow(){
 		setTitle("ArachniApp Control Panel");
@@ -42,6 +45,8 @@ public class MainWindow extends JFrame{
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
+		
+		db.MySQLConnection("root", "", "arachniappdb");
 		
 		textField = new JTextField();
 		textField.setBounds(52, 11, 175, 20);
@@ -92,7 +97,7 @@ public class MainWindow extends JFrame{
         			try{
         				String xml = textField.getText();
         				
-        				XMLReader xR = new XMLReader(xml);
+        				XMLReader xR = new XMLReader(xml, db);
         				
         				if(xR.validateFile()){
         					xR.readFile();
@@ -102,11 +107,18 @@ public class MainWindow extends JFrame{
             					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
         					}
         					else{
-        						JOptionPane.showMessageDialog(null, "SUCCESS!!");
+            					ParserWindow pW = new ParserWindow(xR, db);
+            					int i = xR.insertConfParameters();
             					
-            					ParserWindow pW = new ParserWindow(xR);        					
-            					pW.setVisible(true);
-            					dispose();
+            					if(i == 1){
+            						JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.arrayConfAtt.get(0)+"' already exists! Use another name.");
+            					}
+            					else{
+            						JOptionPane.showMessageDialog(null, "SUCCESS!!");
+            						
+            						pW.setVisible(true);
+                					dispose();
+            					}            					
         					}        					
         				}
         				else{
@@ -127,6 +139,7 @@ public class MainWindow extends JFrame{
         JButton btnExit = new JButton("Exit");
 		btnExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				db.closeConnection();
 				System.exit(0);
 			}
 		});

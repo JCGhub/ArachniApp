@@ -1,6 +1,10 @@
 package htmlparser;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+
+import database.ConnectDB;
 
 public class InfoOrganizator{
 	ArrayList<String> multMainEnt = new ArrayList<String>();
@@ -13,13 +17,15 @@ public class InfoOrganizator{
 	ArrayList<ArrayList<String>> arrayAtt = new ArrayList<ArrayList<String>>();
 	String url;
 	InfoDownloader iD = new InfoDownloader();
+	ConnectDB db;
 	
-	public InfoOrganizator(String url, ArrayList<String> arrayConfAttributes, ArrayList<String> arrayMainEnt, ArrayList<ArrayList<String>> arrayPredEnt, ArrayList<ArrayList<String>> arrayAtt){
+	public InfoOrganizator(String url, ArrayList<String> arrayConfAttributes, ArrayList<String> arrayMainEnt, ArrayList<ArrayList<String>> arrayPredEnt, ArrayList<ArrayList<String>> arrayAtt, ConnectDB db){
 		this.url = url;
 		this.arrayConfAttributes = arrayConfAttributes;
 		this.arrayMainEnt = arrayMainEnt;
 		this.arrayPredEnt = arrayPredEnt;
 		this.arrayAtt = arrayAtt;
+		this.db = db;
 	}
 	
 	public void mainExec(){
@@ -42,7 +48,7 @@ public class InfoOrganizator{
 					multMainEnt = iD.downloadArray(url, mainEntXPath, null);
 					
 					if(urlType.contains("incomplete")){
-						multMainEnt = iD.completeURLs(multMainEnt, urlType);
+						multMainEnt = iD.completeURLs(multMainEnt, arrayMainEnt.get(3));
 						iD.showArrayData(multMainEnt);
 					}
 					else{
@@ -81,35 +87,30 @@ public class InfoOrganizator{
 			case "PRED_NEXTPAGE_BTN":
 				String nextPageXPath = arrayPredEnt.get(i).get(2);
 				
-				multMainEnt = iD.nextPagesBtn(url, nextPageXPath, mainEntXPath, urlRoot);
-				
-				//System.out.println("multMainEnt size: "+multMainEnt.size());
-				
+				multMainEnt = iD.nextPagesBtn(url, nextPageXPath, mainEntXPath, urlRoot);				
 				iD.showArrayData(multMainEnt);
 				
 				break;
 			case "PRED_NEXTPAGE_PATT":
-				/*mainEntXPath = arrayMainEnt.get(1);
+				String urlPatt = arrayPredEnt.get(i).get(2);
+				String initValue = arrayPredEnt.get(i).get(3);
+				String value = arrayPredEnt.get(i).get(4);
 				
-				multMainEnt = iD.downloadArray(url, mainEntXPath, null);
-
-				multMainEnt = iD.completeURLs(multMainEnt, arrayPredEnt.get(i).get(1));
-				iD.showArrayData(multMainEnt);*/
+				multMainEnt = iD.nextPagesPatt(url, urlPatt, initValue, value, mainEntXPath, urlRoot);				
+				iD.showArrayData(multMainEnt);
 				
 				break;
 			default:
 				break;
-			}
-			
-			
+			}			
 		}
 		
-		/*if(mainEntSize.contains("simple")){
+		if(mainEntSize.contains("simple")){
 			simpleMEAttExec();
 		}
 		else{
 			multMEAttExec();
-		}*/
+		}
 	}
 	
 	public void simpleMEAttExec(){
@@ -119,14 +120,26 @@ public class InfoOrganizator{
 			if(attSize.contains("simple")){
 				simpleAtt = iD.downloadString(url, arrayAtt.get(j).get(1));
 				
-				iD.showStrData(simpleAtt);
+				try {
+					insertSimpleDataDB(simpleAtt, j);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				//iD.showStrData(simpleAtt);
 				System.out.println();
 			}
 			else{
 				if(attSize.contains("multiple")){						
 					multAtt = iD.downloadArray(url, arrayAtt.get(j).get(1), null);
 					
-					iD.showArrayData(multAtt);
+					for(int i = 0; i < multAtt.size(); i++){
+						try {
+							insertMultipleDataDB(multAtt.get(i), j);
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
+					}
+					//iD.showArrayData(multAtt);
 					System.out.println();
 				}
 				else{
@@ -144,16 +157,31 @@ public class InfoOrganizator{
 				String attSize = arrayAtt.get(j).get(2);
 				
 				if(attSize.contains("simple")){
+					//System.out.println(arrayAtt.get(j).get(1));
 					simpleAtt = iD.downloadString(multMainEnt.get(i), arrayAtt.get(j).get(1));
 					
-					iD.showStrData(simpleAtt);
+					try {
+						insertSimpleDataDB(simpleAtt, j);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+					
+					//iD.showStrData(simpleAtt);
 					System.out.println();
 				}
 				else{
 					if(attSize.contains("multiple")){						
 						multAtt = iD.downloadArray(multMainEnt.get(i), arrayAtt.get(j).get(1), null);
 						
-						iD.showArrayData(multAtt);
+						for(int k = 0; k < multAtt.size(); k++){
+							try {
+								insertMultipleDataDB(multAtt.get(k), j);
+							} catch (SQLException e) {
+								e.printStackTrace();
+							}
+						}
+						
+						//iD.showArrayData(multAtt);
 						System.out.println();
 					}
 					else{
@@ -164,5 +192,39 @@ public class InfoOrganizator{
 			
 			System.out.println("-----------------------------------------------------------\n");
 		}
+	}
+	
+	public void insertSimpleDataDB(String s, int i) throws SQLException{
+		int entity = url.hashCode();
+		int confFileId = 0, categoryId = 0;
+		ResultSet confFileRS = db.getConfFileId(arrayConfAttributes.get(0));
+		ResultSet categoryRS = db.getCategoryId(arrayConfAttributes.get(1));
+		
+		while(confFileRS.next()){
+			confFileId = confFileRS.getInt(1);
+		}
+		
+		while(categoryRS.next()){
+			categoryId = categoryRS.getInt(1);
+		}	
+		
+		db.insertStringParams(arrayAtt.get(i).get(0), s, entity, arrayMainEnt.get(3), confFileId, categoryId);
+	}
+	
+	public void insertMultipleDataDB(String s, int i) throws SQLException{
+		int entity = url.hashCode();
+		int confFileId = 0, categoryId = 0;
+		ResultSet confFileRS = db.getConfFileId(arrayConfAttributes.get(0));
+		ResultSet categoryRS = db.getCategoryId(arrayConfAttributes.get(1));
+		
+		while(confFileRS.next()){
+			confFileId = confFileRS.getInt(1);
+		}
+		
+		while(categoryRS.next()){
+			categoryId = categoryRS.getInt(1);
+		}
+		
+		db.insertStringParams(arrayAtt.get(i).get(0), s, entity, arrayMainEnt.get(3), confFileId, categoryId);
 	}
 }

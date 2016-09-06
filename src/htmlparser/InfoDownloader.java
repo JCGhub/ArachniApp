@@ -5,6 +5,8 @@ import database.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
@@ -12,9 +14,14 @@ import org.w3c.dom.Document;
 
 public class InfoDownloader{
 	ArrayList<String> arrayData = new ArrayList<String>();
-	String strData;
+	String strData, nameFileConf, category;
 	
 	public InfoDownloader(){}
+	
+	public InfoDownloader(String nameFileConf, String category){
+		this.nameFileConf = nameFileConf;
+		this.category = category;
+	}
 	
 	public ArrayList<String> downloadArray(String url, String xPath, String pred){
 		HTMLParser hP = new HTMLParser(url, xPath);
@@ -57,8 +64,9 @@ public class InfoDownloader{
 		ArrayList<String> multMainEnt = new ArrayList<String>();
 		String currUrl = url, prevUrl = "";
 		boolean lastPage = false;
+		//int k = 0;
 		
-		while(!(downloadString(currUrl, nextPageXPath).isEmpty()) || lastPage == false){
+		while((!(downloadString(currUrl, nextPageXPath).isEmpty()) || lastPage == false)){
 			if(downloadString(currUrl, nextPageXPath).isEmpty() && lastPage == false){
 				currArray = downloadArray(currUrl, mainEntXPath, null);
 				lastPage = true;
@@ -75,8 +83,9 @@ public class InfoDownloader{
 				String nextUrl = downloadString(currUrl, nextPageXPath);
 					
 				if(urlRoot != null){
-					System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
-					System.out.println("** prevUrl: "+prevUrl);
+					//System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
+					//System.out.println("** prevUrl: "+prevUrl);
+					
 					if(!(completeURL(nextUrl, urlRoot).equals(prevUrl))){
 						currArray = downloadArray(currUrl, mainEntXPath, null);						
 						currArray = completeURLs(currArray, urlRoot);
@@ -96,8 +105,9 @@ public class InfoDownloader{
 					}
 				}
 				else{
-					System.out.println("** nextUrl: "+nextUrl);
-					System.out.println("** prevUrl: "+prevUrl);
+					//System.out.println("** nextUrl: "+nextUrl);
+					//System.out.println("** prevUrl: "+prevUrl);
+					
 					if(nextUrl != prevUrl){
 						currArray = downloadArray(currUrl, mainEntXPath, null);
 						
@@ -119,8 +129,62 @@ public class InfoDownloader{
 					multMainEnt.add(currArray.get(i));
 				}
 			}
+			//k++;
 		}
 
+		return multMainEnt;
+	}
+	
+	public ArrayList<String> nextPagesPatt(String url, String urlPatt, String initValue, String value, String mainEntXPath, String urlRoot){
+		ArrayList<String> currArray = new ArrayList<String>();
+		ArrayList<String> multMainEnt = new ArrayList<String>();
+		String currUrl = urlPatt, strMatch = "", newUrl = url;		
+		int valueInt = Integer.parseInt(value);
+		int initValueInt = Integer.parseInt(initValue);
+		int valueIntCount = initValueInt;
+		Pattern regEx;
+		Matcher match;
+		boolean lastPage = false;
+		
+		regEx = Pattern.compile("\\{\\{.+\\}\\}");
+		match = regEx.matcher(urlPatt);
+		
+		while(match.find()){
+			strMatch = match.group();
+		}
+		
+		while(lastPage == false){
+			valueIntCount = valueIntCount + valueInt;
+			
+			String valueStrCount = Integer.toString(valueIntCount);
+			
+			String newPatt = strMatch.replace("pattern", valueStrCount);
+			String newPattFixed1 = newPatt.replaceAll("\\{\\{", "");
+			String newPattFixed2 = newPattFixed1.replaceAll("\\}\\}", "");
+			
+			//System.out.println("** new Pattern "+newPatt);
+			//System.out.println("** new Pattern fixed "+newPattFixed2);
+			
+			System.out.println("** current Url: "+newUrl);
+			
+			currArray = downloadArray(newUrl, mainEntXPath, null);
+				
+			newUrl = currUrl.replace(strMatch, newPattFixed2);
+			
+			if(currArray.get(0).contains("Last")){
+				lastPage = true;
+			}
+			else{
+				if(urlRoot != null){
+					currArray = completeURLs(currArray, urlRoot);
+				}
+				
+				for(int i = 0; i < currArray.size(); i++){
+					multMainEnt.add(currArray.get(i));
+				}
+			}							
+		}
+	
 		return multMainEnt;
 	}
 	
@@ -130,6 +194,19 @@ public class InfoDownloader{
 	
 	public String getString(){
 		return strData;
+	}
+	
+	public int insertConfFileParamsDB(ConnectDB db) throws SQLException{		
+		ResultSet rS = db.getNameFile();
+		
+		while(rS.next()){			
+			if(rS.getString("name").equals(nameFileConf)){
+				return 1;
+			}
+		}
+		
+		db.insertConfFileParams(nameFileConf, category);		
+		return 0;
 	}
 	
 	public void showArrayData(ArrayList<String> array){

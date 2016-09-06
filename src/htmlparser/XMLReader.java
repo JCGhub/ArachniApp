@@ -3,19 +3,18 @@ package htmlparser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.w3c.dom.CharacterData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -23,23 +22,27 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import database.ConnectDB;
+
 public class XMLReader{
 	ArrayList<String> arrayMainEnt = new ArrayList<String>();
-	ArrayList<String> arrayConfAtt = new ArrayList<String>();
+	public ArrayList<String> arrayConfAtt = new ArrayList<String>();
 	ArrayList<ArrayList<String>> arrayPredEnt = new ArrayList<ArrayList<String>>();
 	ArrayList<ArrayList<String>> arrayAtt = new ArrayList<ArrayList<String>>();
 	Document xmlFile;
 	String xml, url;
 	public boolean urlExc = false;
+	ConnectDB db;
 	
-	public XMLReader(String xml) throws Exception{
+	public XMLReader(String xml, ConnectDB db) throws Exception{
 		this.xml = xml;
+		this.db = db;
 		
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setValidating(false);
-    	DocumentBuilder db = dbf.newDocumentBuilder();
+    	DocumentBuilder dbu = dbf.newDocumentBuilder();
     	
-    	xmlFile = db.parse(new FileInputStream(new File(xml)));
+    	xmlFile = dbu.parse(new FileInputStream(new File(xml)));
 	}
 	
 	public boolean validateFile(){
@@ -90,10 +93,12 @@ public class XMLReader{
 			arrayMainEnt.add(mainEntUrlType);
 	    	
 	    	Node ruleMENode = mainEnt.getElementsByTagName("rule").item(0);
-			String ruleME = ruleMENode.getFirstChild().getNodeValue();
-			arrayMainEnt.add(ruleME);
+			if(mainEnt.getElementsByTagName("rule").getLength() > 0){
+				String ruleME = ruleMENode.getFirstChild().getNodeValue();
+				arrayMainEnt.add(ruleME);
+			}	    	
 			
-			if(mainEnt.getElementsByTagName("url_root").getLength() > 0 && mainEntUrlType.contains("incomplete")){
+			if(mainEnt.getElementsByTagName("url_root").getLength() > 0){
 				Node urlRootNode = mainEnt.getElementsByTagName("url_root").item(0);
 				String urlRoot = urlRootNode.getFirstChild().getNodeValue();
 				arrayMainEnt.add(urlRoot);
@@ -121,10 +126,17 @@ public class XMLReader{
 				Node nameNode = predEnt.getElementsByTagName("name").item(0);
 				String name = nameNode.getFirstChild().getNodeValue();
 				arrayCurrPredEnt.add(name);
-		    	
-		    	Node rulePENode = predEnt.getElementsByTagName("rule").item(0);
-				String rulePE = rulePENode.getFirstChild().getNodeValue();
-				arrayCurrPredEnt.add(rulePE);
+				
+				NodeList ruleList = predEnt.getElementsByTagName("rules");
+				
+				for(int k = 0; k < ruleList.getLength(); k++){		    		
+		    		Node ruleNode = ruleList.item(k);
+					Element rule = (Element)ruleNode;
+					
+					Node rulePENode = rule.getElementsByTagName("rule").item(0);
+					String rulePE = rulePENode.getFirstChild().getNodeValue();
+					arrayCurrPredEnt.add(rulePE);
+		    	}		    	
 		    	
 		    	arrayPredEnt.add(arrayCurrPredEnt);
 	    	}
@@ -171,9 +183,23 @@ public class XMLReader{
 	}
 	
 	public InfoOrganizator infoReady(){
-    	InfoOrganizator iO = new InfoOrganizator(url, arrayConfAtt, arrayMainEnt, arrayPredEnt, arrayAtt);
+    	InfoOrganizator iO = new InfoOrganizator(url, arrayConfAtt, arrayMainEnt, arrayPredEnt, arrayAtt, db);
 	
     	return iO;
+	}
+	
+	public int insertConfParameters(){
+		InfoDownloader iD = new InfoDownloader(arrayConfAtt.get(0), arrayConfAtt.get(1));
+		int i = 0;
+		
+		try {
+			i = iD.insertConfFileParamsDB(db);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return i;
 	}
 	
 	public void showArrayConfAtt(){

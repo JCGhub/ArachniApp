@@ -78,27 +78,32 @@ public class HTMLParser{
         if(!(xPath1.isEmpty())){
             ArrayList<String> results = new ArrayList<String>();
             
-            System.out.println("Url: "+URL);
+            //System.out.println("Url: "+URL);
             //System.out.println("XPath: "+xPath1);
             
             try{
-                TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
-                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
-                
-                XPath xpath = XPathFactory.newInstance().newXPath();
-                
-                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
-                
-                System.out.println("Nodes size: "+nodes.getLength());
-                
-                for (int i = 0; i < nodes.getLength(); i++) {
-                	String str = nodes.item(i).getTextContent();
-                    String strCod = StringEscapeUtils.unescapeHtml4(str);
-                    
-                    //System.out.println("Current strCod: "+strCod);
-                    
-                    results.add(strCod);
-                }
+            	if(doRequest().toString().isEmpty()){
+            		results.add("Last");
+            	}
+            	else{
+	                TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
+	                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
+	                
+	                XPath xpath = XPathFactory.newInstance().newXPath();
+	                
+	                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
+	                
+	                System.out.println("Nodes size: "+nodes.getLength());
+	                
+	                for (int i = 0; i < nodes.getLength(); i++) {
+	                	String str = nodes.item(i).getTextContent();
+	                    String strCod = StringEscapeUtils.unescapeHtml4(str);
+	                    
+	                    //System.out.println("Current strCod: "+strCod);
+	                    
+	                    results.add(strCod);
+	                }
+            	}
                 
                 return results;
             } catch (XPathExpressionException e) {
@@ -110,7 +115,7 @@ public class HTMLParser{
             } catch (Exception e) {
                     e.printStackTrace();
                     logger.log(e.getMessage());
-            }            
+            }      
         }
         return null;     
     }
@@ -242,15 +247,11 @@ public class HTMLParser{
         
         requestProperties.add(new KeyValue("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"));
         requestProperties.add(new KeyValue("Accept-Language", "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3"));
-        requestProperties.add(new KeyValue("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
-        //requestProperties.add(new KeyValue("Accept-Encoding", "gzip, deflate"));
+        requestProperties.add(new KeyValue("Accept", "text/html,text/xml,application/json,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
         requestProperties.add(new KeyValue("Connection", "keep-alive"));
-        requestProperties.add(new KeyValue("Content-Type", "application/x-www-form-urlencoded"));
-        requestProperties.add(new KeyValue("Cache-Control", "no-cache"));        
-        requestProperties.add(new KeyValue("Content-Type", "application/json"));
+        requestProperties.add(new KeyValue("Content-Type", "application/x-www-form-urlencoded,application/json,application/json;charset=UTF-8"));
+        requestProperties.add(new KeyValue("Cache-Control", "no-cache"));
         requestProperties.add(new KeyValue("charset","utf-8"));
-        requestProperties.add(new KeyValue("Accept", "application/json"));
-        requestProperties.add(new KeyValue("Content-Type", "application/json;charset=UTF-8"));
         
         for(KeyValue par: requestProperties) {
             con.setRequestProperty(par.key, par.value);
@@ -278,12 +279,13 @@ public class HTMLParser{
         
         StringBuffer response = new StringBuffer();
         
-        /*if(responseCode == 200){
-        	System.out.println("La url existe");
+        if(responseCode == 200){
+        	//System.out.println("La url existe");
         }
         else{
-        	System.out.println("La url NO existe");
-        }*/
+        	//System.out.println("La url NO existe");
+        	return response;
+        }
         
 	    logger.log("Response: " + responseCode, iLogger.Level.INFO);
 	

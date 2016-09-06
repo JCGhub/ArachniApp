@@ -3,15 +3,33 @@
 	<xs:element name="conf">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element type="xs:anyURI" name="url"/>
+				<xs:element name="url">
+					<xs:simpleType>
+						<xs:restriction base="xs:anyURI">
+							<xs:minLength value="1"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
 				<xs:element name="entities">
 					<xs:complexType>
 						<xs:sequence>
 							<xs:element name="main_entity">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element type="xs:string" name="rule"/>
-										<xs:element type="xs:string" name="url_root" minOccurs="0" maxOccurs="1"/>
+										<xs:element name="rule">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="url_root">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="size" use="required">
 										<xs:simpleType>
@@ -34,8 +52,26 @@
 							<xs:element name="pred_entity" maxOccurs="10" minOccurs="0">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element type="xs:string" name="name"/>
-										<xs:element type="xs:string" name="rule"/>
+										<xs:element name="name">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="rules" maxOccurs="10" minOccurs="1">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="rule">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="type" use="required">
 										<xs:simpleType>
@@ -56,8 +92,20 @@
 							<xs:element name="field" maxOccurs="10" minOccurs="1">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element type="xs:string" name="name"/>
-										<xs:element type="xs:string" name="rule"/>
+										<xs:element name="name">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="rule">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="size" use="required">
 										<xs:simpleType>
@@ -80,18 +128,26 @@
 					</xs:complexType>
 				</xs:element>
 			</xs:sequence>
-			<xs:attribute type="xs:string" name="name" use="required"/>
+			<xs:attribute name="name" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
 			<xs:attribute name="cat" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
-						<xs:enumeration value="Restaurantes"/>
-						<xs:enumeration value="Hoteles"/>
+						<xs:enumeration value="Varios"/>
 						<xs:enumeration value="Noticias"/>
+						<xs:enumeration value="Informática"/>
 						<xs:enumeration value="Deportes"/>
 						<xs:enumeration value="Académico"/>
-						<xs:enumeration value="Científico"/>
+						<xs:enumeration value="Investigación"/>
 						<xs:enumeration value="Entretenimiento"/>
-						<xs:enumeration value="Varios"/>
+						<xs:enumeration value="Ocio"/>
+						<xs:enumeration value="Hostelería"/>
+						<xs:enumeration value="Hospedería"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
