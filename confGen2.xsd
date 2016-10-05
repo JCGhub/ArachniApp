@@ -49,35 +49,37 @@
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="pred_entity" maxOccurs="10" minOccurs="0">
+							<xs:element name="next_page" maxOccurs="1" minOccurs="0">
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="name">
+										<xs:element name="rule">
 											<xs:simpleType>
 												<xs:restriction base="xs:string">
 													<xs:minLength value="1"/>
 												</xs:restriction>
 											</xs:simpleType>
 										</xs:element>
-										<xs:element name="rules" maxOccurs="10" minOccurs="1">
-											<xs:complexType>
-												<xs:sequence>
-													<xs:element name="rule">
-														<xs:simpleType>
-															<xs:restriction base="xs:string">
-																<xs:minLength value="1"/>
-															</xs:restriction>
-														</xs:simpleType>
-													</xs:element>
-												</xs:sequence>
-											</xs:complexType>
+										<xs:element name="numPages">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
 										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="type" use="required">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="PRED_NEXTPAGE_BTN"/>
-												<xs:enumeration value="PRED_NEXTPAGE_PATT"/>
+												<xs:enumeration value="button"/>
+												<xs:enumeration value="pattern"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="size" use="required">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="all"/>
+												<xs:enumeration value="some"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -115,13 +117,6 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="type" use="optional">
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="key"/>
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -135,19 +130,35 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
+			<xs:attribute name="web_portal" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="1"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
 			<xs:attribute name="cat" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
-						<xs:enumeration value="Varios"/>
-						<xs:enumeration value="Noticias"/>
-						<xs:enumeration value="Informática"/>
-						<xs:enumeration value="Deportes"/>
-						<xs:enumeration value="Académico"/>
-						<xs:enumeration value="Investigación"/>
-						<xs:enumeration value="Entretenimiento"/>
-						<xs:enumeration value="Ocio"/>
-						<xs:enumeration value="Hostelería"/>
-						<xs:enumeration value="Hospedería"/>
+						<xs:enumeration value="Cookery"/>
+						<xs:enumeration value="Others"/>
+						<xs:enumeration value="News"/>
+						<xs:enumeration value="Computing"/>
+						<xs:enumeration value="Sports"/>
+						<xs:enumeration value="Academic"/>
+						<xs:enumeration value="Investigation"/>
+						<xs:enumeration value="Science"/>
+						<xs:enumeration value="Entertainment"/>
+						<xs:enumeration value="Hostelry"/>
+						<xs:enumeration value="Administration"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="actualize" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="Yes"/>
+						<xs:enumeration value="No"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

@@ -3,8 +3,10 @@ package htmlparser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import javax.swing.JOptionPane;
 import javax.xml.XMLConstants;
@@ -17,244 +19,324 @@ import javax.xml.validation.Validator;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import database.ConnectDB;
 
+/**
+ * @author Juanca
+ * 
+ * Clase creada para la validación y lectura del fichero xml.
+ *
+ * 'mainEntity_array'	Array que almacena los parámetros y reglas de la entidad principal.
+ * 'confFile_array' 	Array que almacena los parámetros del fichero de configuración.
+ * 'nextPage_array'		Array que almacena los parámetros y reglas de la función de página siguiente.
+ * 'attributes_array'	Array que almacena los parámetros y reglas de los atributos de las entidades.
+ * 'xmlFile'			Variable de tipo Document generada para la gestión de los nodos del fichero xml.
+ * 'xml'				Ruta en la que se sitúa el fichero xml que se va a leer.
+ * 'url'				Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
+ * 'db'					Instancia de ConnectDB para la gestión de funciones de tratamiento de la base de datos.
+ */
+
 public class XMLReader{
-	ArrayList<String> arrayMainEnt = new ArrayList<String>();
-	public ArrayList<String> arrayConfAtt = new ArrayList<String>();
-	ArrayList<ArrayList<String>> arrayPredEnt = new ArrayList<ArrayList<String>>();
-	ArrayList<ArrayList<String>> arrayAtt = new ArrayList<ArrayList<String>>();
+	
+	ArrayList<String> xmlContent_array = new ArrayList<String>();
+	ArrayList<String> mainEntity_array = new ArrayList<String>();
+	public ArrayList<String> confFile_array = new ArrayList<String>();
+	ArrayList<String> nextPage_array = new ArrayList<String>();
+	ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
 	Document xmlFile;
 	String xml, url;
-	public boolean urlExc = false;
 	ConnectDB db;
+	
+	/**
+	 * Constructor de la clase XMLReader.
+	 * 
+	 * @param xml, Ruta en la que se sitúa el fichero xml que se va a leer.
+	 * @param db, Instancia de la clase ConnectDB.
+	 * 
+	 * @throws Exception
+	 */
 	
 	public XMLReader(String xml, ConnectDB db) throws Exception{
 		this.xml = xml;
 		this.db = db;
 		
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setValidating(false);
-    	DocumentBuilder dbu = dbf.newDocumentBuilder();
+		DocumentBuilderFactory dBF = DocumentBuilderFactory.newInstance();
+		dBF.setValidating(false);
+    	DocumentBuilder dBu = dBF.newDocumentBuilder();
     	
-    	xmlFile = dbu.parse(new FileInputStream(new File(xml)));
+    	xmlFile = dBu.parse(new FileInputStream(new File(xml)));
 	}
 	
+	/**
+	 * Función que comprueba si el fichero xml leído se ciñe al formato generado por el xml schema.
+	 * 
+	 * @return Devuelve verdadero si el validador del schema acepta el formato del fichero xml.
+	 */
+	
 	public boolean validateFile(){
-		try {
-            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new File("confGen2.xsd"));
+		try{
+            SchemaFactory sF = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            Schema schema = sF.newSchema(new File("confGen2.xsd"));
             
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(new File(xml)));
-        } catch (IOException | SAXException e) {
-            //System.out.println("Exception: "+e.getMessage());
-        	JOptionPane.showMessageDialog(null, "Exception: "+e.getMessage());
-            
+        }catch(IOException | SAXException e){
+        	JOptionPane.showMessageDialog(null, "Exception: "+e.getMessage());            
             return false;
         }
 		
         return true;
 	}
 	
+	/**
+	 * Función que lee y almacena en los arrays creados globalmente los diferentes valores que almacenan 
+	 * los nodos del fichero xml para su posterior uso.
+	 * 
+	 * @throws Exception
+	 */
+	
 	public void readFile() throws Exception{
 		//Extraemos los atributos de la etiqueta conf
 		
-		String confAtt1 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("name").getNodeValue();
-		arrayConfAtt.add(confAtt1);
-    	String confAtt2 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("cat").getNodeValue();
-    	arrayConfAtt.add(confAtt2);
+		xmlContent_array.add("Configuration File Parameters");
+		xmlContent_array.add("-----------------------------");
+		
+		String confFileAtt1 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("name").getNodeValue();
+		confFile_array.add(confFileAtt1);
+		xmlContent_array.add("Name: "+confFileAtt1);
+		String confFileAtt2 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("web_portal").getNodeValue();
+		confFile_array.add(confFileAtt2);
+		xmlContent_array.add("Web Portal: "+confFileAtt2);
+    	String confFileAtt3 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("cat").getNodeValue();
+    	confFile_array.add(confFileAtt3);
+    	xmlContent_array.add("Category: "+confFileAtt3);
+    	String confFileAtt4 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("actualize").getNodeValue();
+    	confFile_array.add(confFileAtt4);
+    	xmlContent_array.add("Actualize: "+confFileAtt4);
     	
     	//Extraemos la url
     	
+    	xmlContent_array.add("\nMain Entity parameters");
+		xmlContent_array.add("----------------------");
+    	
     	url = xmlFile.getElementsByTagName("url").item(0).getTextContent();
+    	xmlContent_array.add("Url: "+url);
     	
     	//Extraemos las entidades
     	
-    	NodeList entitiesList = xmlFile.getElementsByTagName("entities");
+    	NodeList entities_list = xmlFile.getElementsByTagName("entities");
     	
-    	for(int i = 0; i < entitiesList.getLength(); i++){    		
-    		Node entityNode = entitiesList.item(i);
-			Element entity = (Element)entityNode;
+    	for(int i = 0; i < entities_list.getLength(); i++){    		
+    		Node entity_node = entities_list.item(i);
+			Element entity = (Element)entity_node;
 			
 			//Extraemos la entidad principal
 
-			Node mainEntNode = entity.getElementsByTagName("main_entity").item(0);
-			Element mainEnt = (Element)mainEntNode;
+			Node mainEntity_node = entity.getElementsByTagName("main_entity").item(0);
+			Element mainEntity = (Element)mainEntity_node;
 			
-			String mainEntSize = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("size").getNodeValue();
-			arrayMainEnt.add(mainEntSize);
-			String mainEntUrlType = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("url").getNodeValue();
-			arrayMainEnt.add(mainEntUrlType);
+			String mainEntitySize = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("size").getNodeValue();
+			mainEntity_array.add(mainEntitySize);
+			xmlContent_array.add("Size: "+mainEntitySize);
+			String mainEntityUrlType = xmlFile.getElementsByTagName("main_entity").item(0).getAttributes().getNamedItem("url").getNodeValue();
+			mainEntity_array.add(mainEntityUrlType);
+			xmlContent_array.add("Url type: "+mainEntityUrlType);
 	    	
-	    	Node ruleMENode = mainEnt.getElementsByTagName("rule").item(0);
-			if(mainEnt.getElementsByTagName("rule").getLength() > 0){
-				String ruleME = ruleMENode.getFirstChild().getNodeValue();
-				arrayMainEnt.add(ruleME);
-			}	    	
+	    	Node mainEntityRule_node = mainEntity.getElementsByTagName("rule").item(0);
+			String mainEntityRule = mainEntityRule_node.getFirstChild().getNodeValue();
+			mainEntity_array.add(mainEntityRule);
+			xmlContent_array.add("Rule: "+mainEntityRule);
 			
-			if(mainEnt.getElementsByTagName("url_root").getLength() > 0){
-				Node urlRootNode = mainEnt.getElementsByTagName("url_root").item(0);
-				String urlRoot = urlRootNode.getFirstChild().getNodeValue();
-				arrayMainEnt.add(urlRoot);
-			}
-			else{
-				if(mainEnt.getElementsByTagName("url_root").getLength() == 0 && mainEntUrlType.contains("incomplete")){
-					urlExc = true;					
-					return;
-				}
-			}
+			Node urlRoot_node = mainEntity.getElementsByTagName("url_root").item(0);
+			String urlRoot = urlRoot_node.getFirstChild().getNodeValue();
+			mainEntity_array.add(urlRoot);
+			xmlContent_array.add("Url root: "+urlRoot);
 			
-			//Extraemos las entidades predeterminadas
+			//Extraemos la información de las funciones de página siguiente
 			
-			NodeList predEntList = entity.getElementsByTagName("pred_entity");
-			
-			for(int j = 0; j < predEntList.getLength(); j++){
-				ArrayList<String> arrayCurrPredEnt = new ArrayList<String>();
+			if(entity.getElementsByTagName("next_page").getLength() > 0){
+				xmlContent_array.add("\nNext Page parameters");
+				xmlContent_array.add("--------------------");
 				
-	    		Node predEntNode = predEntList.item(j);
-				Element predEnt = (Element)predEntNode;
+				Node nextPage_node = entity.getElementsByTagName("next_page").item(0);
+				Element nextPage = (Element)nextPage_node;
 				
-				String predType = xmlFile.getElementsByTagName("pred_entity").item(0).getAttributes().getNamedItem("type").getNodeValue();
-				arrayCurrPredEnt.add(predType);
-				
-				Node nameNode = predEnt.getElementsByTagName("name").item(0);
-				String name = nameNode.getFirstChild().getNodeValue();
-				arrayCurrPredEnt.add(name);
-				
-				NodeList ruleList = predEnt.getElementsByTagName("rules");
-				
-				for(int k = 0; k < ruleList.getLength(); k++){		    		
-		    		Node ruleNode = ruleList.item(k);
-					Element rule = (Element)ruleNode;
-					
-					Node rulePENode = rule.getElementsByTagName("rule").item(0);
-					String rulePE = rulePENode.getFirstChild().getNodeValue();
-					arrayCurrPredEnt.add(rulePE);
-		    	}		    	
+				String nextPageType = xmlFile.getElementsByTagName("next_page").item(0).getAttributes().getNamedItem("type").getNodeValue();
+				nextPage_array.add(nextPageType);
+				xmlContent_array.add("Type: "+nextPageType);
+				String nextPageSize = xmlFile.getElementsByTagName("next_page").item(0).getAttributes().getNamedItem("size").getNodeValue();
+				nextPage_array.add(nextPageSize);
+				xmlContent_array.add("Size: "+nextPageSize);
 		    	
-		    	arrayPredEnt.add(arrayCurrPredEnt);
-	    	}
+		    	Node nextPageRule_node = nextPage.getElementsByTagName("rule").item(0);
+				String nextPageRule = nextPageRule_node.getFirstChild().getNodeValue();
+				nextPage_array.add(nextPageRule);
+				xmlContent_array.add("Rule: "+nextPageRule);
+				
+				Node nextPageNumPages_node = nextPage.getElementsByTagName("numPages").item(0);
+				String nextPageNumPages = nextPageNumPages_node.getFirstChild().getNodeValue();
+				nextPage_array.add(nextPageNumPages);
+				xmlContent_array.add("Number of Pages: "+nextPageNumPages);
+			}
     	}
     	
     	//Extraemos las atributos
     	
-    	NodeList attList = xmlFile.getElementsByTagName("attributes");
+    	NodeList attributes_list = xmlFile.getElementsByTagName("attributes");
     	
-    	for(int i = 0; i < attList.getLength(); i++){
-    		Node attNode = attList.item(i);
-			Element attribute = (Element)attNode;
+    	for(int i = 0; i < attributes_list.getLength(); i++){
+    		Node attributes_node = attributes_list.item(i);
+			Element attribute = (Element)attributes_node;
 			
-			NodeList fieldList = attribute.getElementsByTagName("field");
+			NodeList field_list = attribute.getElementsByTagName("field");
 			
-			for(int j = 0; j < fieldList.getLength(); j++){
-				ArrayList<String> arrayCurrAtt = new ArrayList<String>();
+			for(int j = 0; j < field_list.getLength(); j++){
+				xmlContent_array.add("\nAttribute "+j+" parameters");
+				xmlContent_array.add("-------------------------");
+				
+				ArrayList<String> attributes_currArray = new ArrayList<String>();
 	    		
-	    		Node fieldNode = fieldList.item(j);
-				Element field = (Element)fieldNode;
+	    		Node field_node = field_list.item(j);
+				Element field = (Element)field_node;
 				
-				Node nameNode = field.getElementsByTagName("name").item(0);
-				String name = nameNode.getFirstChild().getNodeValue();
-				arrayCurrAtt.add(name);
+				String attributeSize = field_node.getAttributes().getNamedItem("size").getNodeValue();
+				attributes_currArray.add(attributeSize);
+				xmlContent_array.add("Size: "+attributeSize);
+				
+				Node attributeName_node = field.getElementsByTagName("name").item(0);
+				String attributeName = attributeName_node.getFirstChild().getNodeValue();
+				attributes_currArray.add(attributeName);
+				xmlContent_array.add("Name: "+attributeName);
 		    	
-		    	Node ruleNode = field.getElementsByTagName("rule").item(0);
-				String rule = ruleNode.getFirstChild().getNodeValue();
-				arrayCurrAtt.add(rule);
-				
-				NamedNodeMap getAtt = field.getAttributes();
-				int numAtt = getAtt.getLength();
-				
-				String attSize = fieldNode.getAttributes().getNamedItem("size").getNodeValue();
-				arrayCurrAtt.add(attSize);
-				
-				if(numAtt > 1){					
-					String fieldAtt = fieldNode.getAttributes().getNamedItem("type").getNodeValue();
-					arrayCurrAtt.add(fieldAtt);
-				}
+		    	Node attributeRule_node = field.getElementsByTagName("rule").item(0);
+				String attributeRule = attributeRule_node.getFirstChild().getNodeValue();
+				attributes_currArray.add(attributeRule);
+				xmlContent_array.add("Rule: "+attributeRule);
 		    	
-		    	arrayAtt.add(arrayCurrAtt);
+				attributes_array.add(attributes_currArray);
 	    	}
     	}
 	}
 	
+	/**
+	 * Función que crea una instancia de la clase InfoOrganizator llamada desde ParserWindow para preparar la ejecución
+	 * de las funciones de dicha clase.
+	 * 
+	 * @return Devuelve un objeto de la clase InfoOrganizator con los parámetros inicializados.
+	 */
+	
 	public InfoOrganizator infoReady(){
-    	InfoOrganizator iO = new InfoOrganizator(url, arrayConfAtt, arrayMainEnt, arrayPredEnt, arrayAtt, db);
+    	InfoOrganizator iO = new InfoOrganizator(url, confFile_array, mainEntity_array, nextPage_array, attributes_array, db);
 	
     	return iO;
 	}
 	
-	public int insertConfParameters(){
-		InfoDownloader iD = new InfoDownloader(arrayConfAtt.get(0), arrayConfAtt.get(1));
-		int i = 0;
+	/**
+	 * Función creada para la inserción en la base de datos de los parámetros que corresponden al fichero de configuración.
+	 * Es llamada desde MainWindow.
+	 * 
+	 * @return Devuelve b, que será true si el nombre del fichero ya existe ó false en caso contrario y por tanto se dispone a introducirlo en la base de datos.
+	 */
+	
+	public boolean prepareConfFileParameters(){
+		String fileConfName = confFile_array.get(0);
+		String webPortal = confFile_array.get(1);
+		String category = confFile_array.get(2);
+		String date;		
+		boolean b = false;
 		
-		try {
-			i = iD.insertConfFileParamsDB(db);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
+		try{
+			ResultSet rS = db.getNameConfFile();
+			Calendar cal = Calendar.getInstance();
+			int webPortalId = 0, categoryId = 0;
+			
+			ResultSet webPortalRS = db.getWebPortalId(webPortal);
+			ResultSet categoryRS = db.getCategoryId(category);
+			
+			while(webPortalRS.next()){
+				webPortalId = webPortalRS.getInt(1);
+			}
+			
+			while(categoryRS.next()){
+				categoryId = categoryRS.getInt(1);
+			}
+			
+		    String day = Integer.toString(cal.get(Calendar.DATE));
+		    String month = Integer.toString((cal.get(Calendar.MONTH)+1));
+		    String year = Integer.toString(cal.get(Calendar.YEAR));
+		    
+		    date = year+"-"+month+"-"+day;
+		    
+		    while(rS.next()){			
+				if(rS.getString("name").equals(fileConfName)){
+					return true;
+				}
+			}
+			
+			db.insertConfFileParameters(fileConfName, webPortalId, categoryId, date);
+		}catch(SQLException e){
 			e.printStackTrace();
 		}
 		
-		return i;
+		return b;
 	}
 	
-	public void showArrayConfAtt(){
-		System.out.println("Configuration file \""+arrayConfAtt.get(0)+"\", Category: "+arrayConfAtt.get(1));
-		System.out.println("--------------------------------------------------------------------------------\n");
-		System.out.println("*****  MOSTRANDO ARRAY QUE DEVUELVE LOS ATRIBUTOS DE conf  *****");
-		
-		for(int i = 0; i < arrayConfAtt.size(); i++){
-			System.out.println("- "+arrayConfAtt.get(i));
-		}
-		
-		System.out.println("****************************************************************\n");
-	}
+	/**
+	 * Función creada para la inserción, en caso de que aun no exista, del parámetro web_portal del fichero de configuración en la base de datos.
+	 * 
+	 */
 	
-	public void showArrayMainEnt(){
-		System.out.println("*****  MOSTRANDO ARRAY QUE DEVUELVE EL CONTENIDO DE mainEnt  *****");
+	public void prepareWebPortalParameters(){
+		String webPortal = confFile_array.get(1);
+		boolean b = false;
 		
-		for(int i = 0; i < arrayMainEnt.size(); i++){
-			System.out.println("- "+arrayMainEnt.get(i));
-		}
-		
-		System.out.println("******************************************************************\n");
-	}
-	
-	public void showArrayPredEnt(){
-		System.out.println("*****  MOSTRANDO ARRAY QUE DEVUELVE EL CONTENIDO DE predEnt  *****");
-		
-		for(int i = 0; i < arrayPredEnt.size(); i++){
-			ArrayList<String> currArrayPredEnt = new ArrayList<String>();
+		try{
+			ResultSet rS = db.getWebPortal();			
 			
-			currArrayPredEnt = arrayPredEnt.get(i);
-			
-			for(int j = 0; j < currArrayPredEnt.size(); j++){
-				System.out.println("Ent. Pred. "+i+": "+currArrayPredEnt.get(j));
+			while(rS.next()){			
+				if(rS.getString("name").equals(webPortal)){
+					b = true;
+				}
 			}
+			
+			if(!b){
+				db.insertWebPortalParameters(webPortal);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
 		}
-		
-		System.out.println("******************************************************************\n");
 	}
 	
-	public void showArrayAtt(){
-		System.out.println("*****  MOSTRANDO ARRAY QUE DEVUELVE EL CONTENIDO DE attributes  *****");
-		
-		for(int i = 0; i < arrayAtt.size(); i++){
-			ArrayList<String> currArrayAtt = new ArrayList<String>();
-			
-			currArrayAtt = arrayAtt.get(i);
-			
-			for(int j = 0; j < currArrayAtt.size(); j++){
-				System.out.println("Atributo "+i+": "+currArrayAtt.get(j));
-			}
+	/**
+	 * Función para visualizar el contenido del fichero xml de configuración.
+	 * 
+	 */
+	
+	public void showXmlFileContent(){
+		for(int i = 0; i < xmlContent_array.size(); i++){
+			System.out.println(xmlContent_array.get(i));
 		}
-		
-		System.out.println("*********************************************************************\n");
 	}
+	
+	/**
+	 * Función que devuelve el array que contiene todos los parámetros introducidos en el fichero xml de configuración.
+	 * 
+	 * @return El array del contenido del fichero xml.
+	 */
+	
+	public ArrayList<String> getXmlFileContent(){
+		return xmlContent_array;
+	}
+	
+	/**
+	 * Función que devuelve el valor de la variable global url.
+	 * 
+	 * @return La url de la entidad principal.
+	 */
 	
 	public String getUrl(){
 		return url;

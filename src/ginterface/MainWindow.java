@@ -1,8 +1,5 @@
 package ginterface;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -10,10 +7,8 @@ import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
 import database.ConnectDB;
-import htmlparser.InfoDownloader;
 import htmlparser.XMLReader;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.JButton;
@@ -21,12 +16,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.awt.event.ActionEvent;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.SwingConstants;
 
 public class MainWindow extends JFrame{
 
@@ -34,11 +25,11 @@ public class MainWindow extends JFrame{
 	private JTextField textField;
 	private JTextArea textArea;
 	JFileChooser fC = new JFileChooser();
-	File fil;
+	File file;
 	ConnectDB db = new ConnectDB();
 
 	public MainWindow(){
-		setTitle("ArachniApp Control Panel");
+		setTitle("ArachniApp · Main menu");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
 		contentPane = new JPanel();
@@ -49,7 +40,7 @@ public class MainWindow extends JFrame{
 		db.MySQLConnection("root", "", "arachniappdb");
 		
 		textField = new JTextField();
-		textField.setBounds(52, 11, 175, 20);
+		textField.setBounds(27, 11, 200, 20);
 		contentPane.add(textField);
 		textField.setColumns(10);
 		
@@ -59,16 +50,16 @@ public class MainWindow extends JFrame{
 				int selection = fC.showOpenDialog(contentPane);
 				
 				if(selection == JFileChooser.APPROVE_OPTION){
-				    fil = fC.getSelectedFile();
-				    textField.setText(fil.getAbsolutePath());
+					file = fC.getSelectedFile();
+				    textField.setText(file.getAbsolutePath());
 				 
-				    try(FileReader fr = new FileReader(fil)){
+				    try(FileReader fR = new FileReader(file)){
 				        String str = "";
-				        int val = fr.read();
+				        int val = fR.read();
 				        
 				        while(val != -1){
 				        	str = str + (char)val;
-				        	val = fr.read();
+				        	val = fR.read();
 				        }
 				        
 				        textArea.setText(str);
@@ -84,16 +75,34 @@ public class MainWindow extends JFrame{
 		textArea = new JTextArea();
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
-		textArea.setBounds(52, 42, 360, 156);
+		textArea.setBounds(27, 42, 385, 156);
 		
 		JScrollPane scroll=new JScrollPane(textArea);
-        scroll.setBounds(52, 42, 360, 156);
+        scroll.setBounds(27, 42, 385, 156);
         contentPane.add(scroll);
+        
+        JButton btnCreateTables = new JButton("Create tables");
+		btnCreateTables.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				db.createTables();
+			}
+		});
+		btnCreateTables.setBounds(27, 216, 112, 23);
+		contentPane.add(btnCreateTables);
+		
+		JButton btnDeleteTables = new JButton("Delete tables");
+		btnDeleteTables.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				db.deleteTables();
+			}
+		});
+		btnDeleteTables.setBounds(147, 216, 112, 23);
+		contentPane.add(btnDeleteTables);
         
         JButton btnProcFile = new JButton("Process file");
         btnProcFile.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
-        		if(fil != null){
+        		if(file != null){
         			try{
         				String xml = textField.getText();
         				
@@ -102,24 +111,19 @@ public class MainWindow extends JFrame{
         				if(xR.validateFile()){
         					xR.readFile();
         					
-        					if(xR.urlExc == true){
-        						JOptionPane.showMessageDialog(null, "Error: There is not an 'url_root' element for an incomplete URL");
-            					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
-        					}
-        					else{
-            					ParserWindow pW = new ParserWindow(xR, db);
-            					int i = xR.insertConfParameters();
+            				ParserWindow pW = new ParserWindow(xR, db);
+            				xR.prepareWebPortalParameters();
+            				boolean b = xR.prepareConfFileParameters();
+            				
+            				if(b){
+            					JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.confFile_array.get(0)+"' already exists! Use another name.");
+            				}
+            				else{
+            					JOptionPane.showMessageDialog(null, "SUCCESS!!");
             					
-            					if(i == 1){
-            						JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.arrayConfAtt.get(0)+"' already exists! Use another name.");
-            					}
-            					else{
-            						JOptionPane.showMessageDialog(null, "SUCCESS!!");
-            						
-            						pW.setVisible(true);
-                					dispose();
-            					}            					
-        					}        					
+            					pW.setVisible(true);
+                				dispose();
+            				}
         				}
         				else{
         					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
@@ -143,7 +147,7 @@ public class MainWindow extends JFrame{
 				System.exit(0);
 			}
 		});
-		btnExit.setBounds(340, 10, 70, 23);
+		btnExit.setBounds(342, 10, 70, 23);
 		contentPane.add(btnExit);
 	}
 }

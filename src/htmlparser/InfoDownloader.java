@@ -8,134 +8,275 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.JOptionPane;
-
-import org.w3c.dom.Document;
+/**
+ * @author Juanca
+ * 
+ * Clase creada para realizar las llamadas a las descargas de la información de las webs.
+ *
+ */
 
 public class InfoDownloader{
-	ArrayList<String> arrayData = new ArrayList<String>();
-	String strData, nameFileConf, category;
+	
+	/**
+	 * Constructor vacío de la clase InfoDownloader para el uso de las funciones de descarga sin necesidad de inicializar
+	 * ningún valor. Será el encargado de las llamadas a función de la clase HTMLParser.
+	 * 
+	 */
 	
 	public InfoDownloader(){}
 	
-	public InfoDownloader(String nameFileConf, String category){
-		this.nameFileConf = nameFileConf;
-		this.category = category;
+	/**
+	 * Función que descarga la información de una web y la devuelve en un array de String.
+	 * 
+	 * @param url, Dirección URL de donde se quiere descargar los valores.
+	 * @param xPath, Ruta xPath del elemento html que se quiere descargar de la web indicada.
+	 * @return Devuelve el array con los valores deseados.
+	 */
+	
+	public ArrayList<String> downloadArray(String url, String xPath){
+		ArrayList<String> values_array = new ArrayList<String>();
+		
+		HTMLParser hP = new HTMLParser(url, xPath);
+		values_array = hP.downloadAsArray();
+		
+		return values_array;
 	}
 	
-	public ArrayList<String> downloadArray(String url, String xPath, String pred){
-		HTMLParser hP = new HTMLParser(url, xPath);
-		arrayData = hP.downloadAsArray();
-		
-		return arrayData;
-	}
+	/**
+	 * Función que descarga la información de una web y la devuelve en un String.
+	 * 
+	 * @param url, Dirección URL de donde se quiere descargar los valores.
+	 * @param xPath, Ruta xPath del elemento html que se quiere descargar de la web indicada.
+	 * @return Devuelve el String con el valor deseado.
+	 */
 	
 	public String downloadString(String url, String xPath){
-		HTMLParser hP = new HTMLParser(url, xPath);
-		strData = hP.downloadAsString();
+		String value;
 		
-		return strData;
+		HTMLParser hP = new HTMLParser(url, xPath);
+		value = hP.downloadAsString();
+		
+		return value;
 	}
+	
+	/**
+	 * Función que descarga todo el contenido xml de la URL especificada como entidad principal.
+	 * 
+	 * @param url, Dirección URL de donde se quiere descargar el contenido xml.
+	 * @throws Exception
+	 */
 	
 	public void downloadContent(String url) throws Exception{
 		HTMLParser hP = new HTMLParser(url);
-        StringBuffer response = hP.downloadContent();        
-        System.out.println(response);
+        StringBuffer webContent = hP.downloadContent();        
+        
+        System.out.println(webContent);
 	}
 	
-	public ArrayList<String> completeURLs(ArrayList<String> array, String s){
-		ArrayList<String> aAux = new ArrayList<String>();
+	/**
+	 * Función que concatena la raíz de una URL al resto de las direcciones que se encontraban incompletas. Esta función
+	 * funciona para un grupo de más de una URL incompleta.
+	 * 
+	 * @param incompleteURLs_array, Array que contiene al grupo de URLs incompletas.
+	 * @param urlRoot, Raíz de la URL que se concatenará con el resto de las direcciones incompletas.
+	 * @return Devuelve un array con las URLs completas.
+	 */
+	
+	public ArrayList<String> completeURLs(ArrayList<String> incompleteURLs_array, String urlRoot){
+		ArrayList<String> completeURLs_array = new ArrayList<String>();
 		
-		for(int i = 0; i < array.size(); i++){
-			String sAux = array.get(i);
-			String compl = s + sAux;
-			aAux.add(compl);
+		for(int i = 0; i < incompleteURLs_array.size(); i++){
+			String incompleteURL = incompleteURLs_array.get(i);
+			String completeURL = urlRoot + incompleteURL;
+			
+			completeURLs_array.add(completeURL);
 		}
 		
-		return aAux;
+		return completeURLs_array;
 	}
 	
-	public String completeURL(String url, String s){		
-		return s+url;
+	/**
+	 * Función que concatena la raíz de una URL al una dirección que se encontraba incompleta. Esta función trabaja sólo
+	 * para una URL incompleta.
+	 * 
+	 * @param incompleteURL, Variable que contiene a la URL incompleta.
+	 * @param urlRoot, Raíz de la URL que se concatenará con el resto de la dirección incompleta.
+	 * @return Devuelve un String con la URL completa.
+	 */
+	
+	public String completeURL(String incompleteURL, String urlRoot){		
+		return urlRoot + incompleteURL;
 	}
 	
-	public ArrayList<String> nextPagesBtn(String url, String nextPageXPath, String mainEntXPath, String urlRoot){
-		ArrayList<String> currArray = new ArrayList<String>();
-		ArrayList<String> multMainEnt = new ArrayList<String>();
-		String currUrl = url, prevUrl = "";
+	/**
+	 * Función que realiza las acciones necesarias para la navegación entre páginas que contienen entidades principales
+	 * de las cuales se desea descargar información cuando en la web se dispone de un botón siguiente enlazado.
+	 * 
+	 * @param url, Dirección URL de la entidad principal. Es la especificada en el fichero de configuración.
+	 * @param nextPageSize, Variable que determina si se quieren recorrer todas las páginas con entidades o sólo algunas.
+	 * @param nextPageXpath, Ruta xPath que contiene la URL que nos conduce a la siguiente página.
+	 * @param nextPageNumPages, Número de páginas que se desean recorrer.
+	 * @param mainEntityXpath, Ruta xPath que contiene la URL de la entidad principal.
+	 * @param urlRoot, Raíz de la URL para concatenarla a una dirección que está incompleta.
+	 * @return Devuelve un array con todas las URLs de las entidades de las que se desea extraer información.
+	 */
+	
+	public ArrayList<String> nextPagesButton(String url, String nextPageSize, String nextPageXpath, String nextPageNumPages, String mainEntityXpath, String urlType, String urlRoot){
+		ArrayList<String> currentUrl_array = new ArrayList<String>();
+		ArrayList<String> multMainEntity_array = new ArrayList<String>();
+		String currentUrl = url, previousUrl = "";
 		boolean lastPage = false;
-		//int k = 0;
+		int k = 0;
+		int nextPage = Integer.parseInt(nextPageNumPages);
 		
-		while((!(downloadString(currUrl, nextPageXPath).isEmpty()) || lastPage == false)){
-			if(downloadString(currUrl, nextPageXPath).isEmpty() && lastPage == false){
-				currArray = downloadArray(currUrl, mainEntXPath, null);
-				lastPage = true;
-				
-				if(urlRoot != null){
-					currArray = completeURLs(currArray, urlRoot);
-				}
-				
-				for(int i = 0; i < currArray.size(); i++){
-					multMainEnt.add(currArray.get(i));
-				}
-			}
-			else{
-				String nextUrl = downloadString(currUrl, nextPageXPath);
+		if(nextPageSize == "all"){
+			while((!(downloadString(currentUrl, nextPageXpath).isEmpty()) || lastPage == false)){
+				if(downloadString(currentUrl, nextPageXpath).isEmpty() && lastPage == false){
+					System.out.println("Downloading main entities (indefinite pages | last page)...");
+					currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+					lastPage = true;
 					
-				if(urlRoot != null){
-					//System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
-					//System.out.println("** prevUrl: "+prevUrl);
-					
-					if(!(completeURL(nextUrl, urlRoot).equals(prevUrl))){
-						currArray = downloadArray(currUrl, mainEntXPath, null);						
-						currArray = completeURLs(currArray, urlRoot);
-						
-						prevUrl = currUrl;
-						currUrl = completeURL(nextUrl, urlRoot);
+					if(urlType == "incomplete"){
+						currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 					}
-					else{
-						currArray = downloadArray(currUrl, mainEntXPath, null);						
-						currArray = completeURLs(currArray, urlRoot);
-						
-						for(int i = 0; i < currArray.size(); i++){
-							multMainEnt.add(currArray.get(i));
-						}
-						
-						return multMainEnt;
+					
+					for(int i = 0; i < currentUrl_array.size(); i++){
+						multMainEntity_array.add(currentUrl_array.get(i));
 					}
 				}
 				else{
-					//System.out.println("** nextUrl: "+nextUrl);
-					//System.out.println("** prevUrl: "+prevUrl);
-					
-					if(nextUrl != prevUrl){
-						currArray = downloadArray(currUrl, mainEntXPath, null);
+					String nextUrl = downloadString(currentUrl, nextPageXpath);
 						
-						prevUrl = currUrl;
-						currUrl = nextUrl;
+					if(urlType == "incomplete"){
+						//System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
+						//System.out.println("** previousUrl: "+previousUrl);
+						
+						if(!(completeURL(nextUrl, urlRoot).equals(previousUrl))){
+							System.out.println("Downloading main entities (indefinite pages)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+							
+							previousUrl = currentUrl;
+							currentUrl = completeURL(nextUrl, urlRoot);
+						}
+						else{
+							System.out.println("Downloading main entities (indefinite pages | anti-loop)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+							
+							for(int i = 0; i < currentUrl_array.size(); i++){
+								multMainEntity_array.add(currentUrl_array.get(i));
+							}
+							
+							return multMainEntity_array;
+						}
 					}
 					else{
-						currArray = downloadArray(currUrl, mainEntXPath, null);
+						//System.out.println("** nextUrl: "+nextUrl);
+						//System.out.println("** previousUrl: "+previousUrl);
 						
-						for(int i = 0; i < currArray.size(); i++){
-							multMainEnt.add(currArray.get(i));
+						if(nextUrl != previousUrl){
+							System.out.println("Downloading main entities (indefinite pages)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							
+							previousUrl = currentUrl;
+							currentUrl = nextUrl;
 						}
+						else{
+							System.out.println("Downloading main entities (indefinite pages)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							
+							for(int i = 0; i < currentUrl_array.size(); i++){
+								multMainEntity_array.add(currentUrl_array.get(i));
+							}
+							
+							return multMainEntity_array;
+						}
+					}
 						
-						return multMainEnt;
+					for(int i = 0; i < currentUrl_array.size(); i++){
+						multMainEntity_array.add(currentUrl_array.get(i));
 					}
 				}
-					
-				for(int i = 0; i < currArray.size(); i++){
-					multMainEnt.add(currArray.get(i));
-				}
 			}
-			//k++;
+		}
+		else{
+			while(((!(downloadString(currentUrl, nextPageXpath).isEmpty()) || lastPage == false)) && k < nextPage){
+				if(downloadString(currentUrl, nextPageXpath).isEmpty() && lastPage == false){
+					System.out.println("Downloading main entities (several pages | last page)...");
+					currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+					lastPage = true;
+					
+					if(urlType == "incomplete"){
+						currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+					}
+					
+					for(int i = 0; i < currentUrl_array.size(); i++){
+						multMainEntity_array.add(currentUrl_array.get(i));
+					}
+				}
+				else{
+					String nextUrl = downloadString(currentUrl, nextPageXpath);
+						
+					if(urlType == "incomplete"){
+						//System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
+						//System.out.println("** previousUrl: "+previousUrl);
+						
+						if(!(completeURL(nextUrl, urlRoot).equals(previousUrl))){
+							System.out.println("Downloading main entities (several pages)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+							
+							previousUrl = currentUrl;
+							currentUrl = completeURL(nextUrl, urlRoot);
+						}
+						else{
+							System.out.println("Downloading main entities (several pages | anti-loop)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+							
+							for(int i = 0; i < currentUrl_array.size(); i++){
+								multMainEntity_array.add(currentUrl_array.get(i));
+							}
+							
+							return multMainEntity_array;
+						}
+					}
+					else{
+						//System.out.println("** nextUrl: "+nextUrl);
+						//System.out.println("** previousUrl: "+previousUrl);
+						
+						if(nextUrl != previousUrl){
+							System.out.println("Downloading main entities (several pages)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							
+							previousUrl = currentUrl;
+							currentUrl = nextUrl;
+						}
+						else{
+							System.out.println("Downloading main entities (several pages)...");
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							
+							for(int i = 0; i < currentUrl_array.size(); i++){
+								multMainEntity_array.add(currentUrl_array.get(i));
+							}
+							
+							return multMainEntity_array;
+						}
+					}
+						
+					for(int i = 0; i < currentUrl_array.size(); i++){
+						multMainEntity_array.add(currentUrl_array.get(i));
+					}
+				}
+				k++;
+			}
 		}
 
-		return multMainEnt;
+		return multMainEntity_array;
 	}
 	
-	public ArrayList<String> nextPagesPatt(String url, String urlPatt, String initValue, String value, String mainEntXPath, String urlRoot){
+	/*public ArrayList<String> nextPagesPattern(String url, String urlPatt, String initValue, String value, String mainEntXPath, String urlRoot){
 		ArrayList<String> currArray = new ArrayList<String>();
 		ArrayList<String> multMainEnt = new ArrayList<String>();
 		String currUrl = urlPatt, strMatch = "", newUrl = url;		
@@ -186,109 +327,5 @@ public class InfoDownloader{
 		}
 	
 		return multMainEnt;
-	}
-	
-	public ArrayList<String> getArray(){
-		return arrayData;
-	}
-	
-	public String getString(){
-		return strData;
-	}
-	
-	public int insertConfFileParamsDB(ConnectDB db) throws SQLException{		
-		ResultSet rS = db.getNameFile();
-		
-		while(rS.next()){			
-			if(rS.getString("name").equals(nameFileConf)){
-				return 1;
-			}
-		}
-		
-		db.insertConfFileParams(nameFileConf, category);		
-		return 0;
-	}
-	
-	public void showArrayData(ArrayList<String> array){
-		if(!(array == null)){
-			for(int i = 0; i < array.size(); i++){
-				System.out.println(i+": "+array.get(i));
-			}
-		}
-		else{
-			System.out.println("El array está vacío");
-		}
-	}
-	
-	public void showStrData(String str){
-		if(!(str.isEmpty())){
-			System.out.println(str);
-		}
-		else{
-			System.out.println("El string está vacío");
-		}
-	}
-	
-	/*public void restPagination(){
-		int URLNumPatt;
-		String URLorigin, URLPatt, patt;
-		
-		switch(nPortal){
-		case 1:
-			downloadNumPagesRest(xPathPages);
-			
-			URLNumPatt = 0;
-			URLorigin = mainURL;
-			URLPatt = "oa";
-			patt = "[[oaxx]]";
-			
-			for(int i = 0; i < numPagesRest; i++){
-				String newPatt = URLPatt+URLNumPatt;
-				String URLgen = URLorigin.replace(patt, newPatt);
-				
-				URLNumPatt = URLNumPatt + 30;
-				URLorigin = URLgen;
-				patt = newPatt;
-				
-				//downloadNameURL(URLorigin);
-			}
-			
-			break;
-		case 2:			
-			break;
-		case 3:
-			downloadNumPagesRest(xPathPages);
-			
-			URLNumPatt = 0;
-			URLorigin = mainURL;
-			URLPatt = "start=";
-			patt = "[[start=xx]]";
-			
-			for(int i = 0; i < numPagesRest; i++){
-				String newPatt = URLPatt+URLNumPatt;
-				String URLgen = URLorigin.replace(patt, newPatt);
-				
-				URLNumPatt = URLNumPatt + 10;
-				URLorigin = URLgen;
-				patt = newPatt;
-				
-				//downloadNameURL(URLorigin);
-			}
-
-			break;
-		default:
-			JOptionPane.showMessageDialog(null, "You has not chosen any restaurant!");			
-			break;
-		}
-	}*/
-	
-	/*public void downloadNumPagesRest(String xPathPages){
-		String numPagesStr;		
-		HTMLParser hP = new HTMLParser(mainURL, xPathPages);
-		
-		System.out.println("Counting pages of "+namePortal+"...");
-			
-		numPagesStr = hP.downloadAsString(namePortal, "numPagesRest");			
-		numPagesRest = Integer.parseInt(numPagesStr);
 	}*/
 }

@@ -1,14 +1,11 @@
 package ginterface;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -28,8 +25,9 @@ public class ParserWindow extends JFrame {
 		this.xR = xR;
 		this.db = db;
 		
+		setTitle("ArachniApp · Parser");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 315, 234);
+		setBounds(100, 100, 315, 200);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -37,24 +35,25 @@ public class ParserWindow extends JFrame {
 		
 		JLabel lblInformation = new JLabel("Information");
 		lblInformation.setHorizontalAlignment(SwingConstants.CENTER);
-		lblInformation.setBounds(106, 8, 88, 14);
+		lblInformation.setBounds(106, 11, 88, 14);
 		contentPane.add(lblInformation);
 		
 		JLabel lblParser = new JLabel("Parser");
 		lblParser.setHorizontalAlignment(SwingConstants.CENTER);
-		lblParser.setBounds(106, 99, 88, 14);
+		lblParser.setBounds(106, 66, 88, 14);
 		contentPane.add(lblParser);
 		
 		JButton btnSummary = new JButton("Summary");
 		btnSummary.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				xR.showArrayConfAtt();
-				xR.showArrayMainEnt();
-				xR.showArrayPredEnt();
-				xR.showArrayAtt();
+				/*xR.showConfFile_array();
+				xR.showMainEntity_array();
+				xR.showNextPage_array();
+				xR.showAttributes_array();*/
+				xR.showXmlFileContent();
 			}
 		});
-		btnSummary.setBounds(37, 29, 99, 23);
+		btnSummary.setBounds(37, 30, 99, 23);
 		contentPane.add(btnSummary);
 		
 		JButton btnWebContent = new JButton("Web Content");
@@ -69,38 +68,20 @@ public class ParserWindow extends JFrame {
 				}
 			}
 		});
-		btnWebContent.setBounds(164, 29, 99, 23);
+		btnWebContent.setBounds(164, 30, 99, 23);
 		contentPane.add(btnWebContent);
-		
-		JButton btnCreateTables = new JButton("Create tables");
-		btnCreateTables.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				db.createTables();
-			}
-		});
-		btnCreateTables.setBounds(37, 61, 98, 23);
-		contentPane.add(btnCreateTables);
-		
-		JButton btnDeleteTables = new JButton("Delete tables");
-		btnDeleteTables.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				db.deleteTables();
-			}
-		});
-		btnDeleteTables.setBounds(164, 61, 98, 23);
-		contentPane.add(btnDeleteTables);
 		
 		JButton btnParseWeb = new JButton("Parse web");
 		btnParseWeb.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				InfoOrganizator iO = xR.infoReady();
 				
-				iO.mainExec();
+				iO.mainExecution();
 				
 				//iS.showArrayData();
 			}
 		});
-		btnParseWeb.setBounds(96, 121, 110, 23);
+		btnParseWeb.setBounds(96, 87, 110, 23);
 		contentPane.add(btnParseWeb);
 		
 		JButton btnExit = new JButton("Exit");
@@ -110,7 +91,7 @@ public class ParserWindow extends JFrame {
 				System.exit(0);
 			}
 		});
-		btnExit.setBounds(75, 162, 150, 23);
+		btnExit.setBounds(75, 127, 150, 23);
 		contentPane.add(btnExit);
 	}
 }

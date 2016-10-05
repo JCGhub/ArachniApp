@@ -2,7 +2,6 @@ package htmlparser;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -13,7 +12,6 @@ import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import javax.net.ssl.HttpsURLConnection;
-import javax.swing.JOptionPane;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -24,13 +22,11 @@ import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import htmlparser.iLogger;
 import htmlparser.KeyValue;
-import htmlparser.HTMLParser.Method;
 import htmlparser.DefaultLogger;
 
 public class HTMLParser{
@@ -46,9 +42,8 @@ public class HTMLParser{
 	Method method = Method.GET;
 	private Document doc = null;
 	boolean https = false;
-	int connectTimeout = 10000; // 10 seconds by default
+	int connectTimeout = 10000;
 	boolean encode = true;
-	private DataFixer dF;
     
 
 	public HTMLParser(String URL) {
@@ -75,36 +70,32 @@ public class HTMLParser{
     }
 	
 	public ArrayList<String> downloadAsArray() {
-        if(!(xPath1.isEmpty())){
-            ArrayList<String> results = new ArrayList<String>();
-            
-            //System.out.println("Url: "+URL);
-            //System.out.println("XPath: "+xPath1);
+		ArrayList<String> results = new ArrayList<String>();
+		
+		if(!(xPath1.isEmpty())){
+            /*System.out.println("DOWNLOAD AS ARRAY");
+            System.out.println("Url: "+URL);
+            System.out.println("XPath: "+xPath1);*/
             
             try{
-            	if(doRequest().toString().isEmpty()){
-            		results.add("Last");
-            	}
-            	else{
-	                TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
-	                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
-	                
-	                XPath xpath = XPathFactory.newInstance().newXPath();
-	                
-	                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
-	                
-	                System.out.println("Nodes size: "+nodes.getLength());
-	                
-	                for (int i = 0; i < nodes.getLength(); i++) {
-	                	String str = nodes.item(i).getTextContent();
-	                    String strCod = StringEscapeUtils.unescapeHtml4(str);
-	                    
-	                    //System.out.println("Current strCod: "+strCod);
-	                    
-	                    results.add(strCod);
-	                }
-            	}
+                TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
+                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
                 
+                XPath xpath = XPathFactory.newInstance().newXPath();
+                
+                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
+                
+                System.out.println("Array Search results: "+nodes.getLength()+" nodes.");
+                
+                for (int i = 0; i < nodes.getLength(); i++) {
+                	String str = nodes.item(i).getTextContent();
+                    String strCod = StringEscapeUtils.unescapeHtml4(str);
+                    
+                    //System.out.println("Current node value: "+strCod);
+                    
+                    results.add(strCod);
+                }
+               
                 return results;
             } catch (XPathExpressionException e) {
                     e.printStackTrace();
@@ -167,8 +158,9 @@ public class HTMLParser{
 		if(!(xPath1.isEmpty())){
         	String result, resultCod = "";
         	
-        	//System.out.println("url: "+URL);
-        	//System.out.println("xPath1: "+xPath1);
+        	/*System.out.println("DOWNLOAD AS STRING");
+        	System.out.println("url: "+URL);
+        	System.out.println("xPath1: "+xPath1);*/
             
             try {
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
@@ -178,12 +170,14 @@ public class HTMLParser{
 
                 NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
                 
-                //System.out.println("nodes.getLength(): "+nodes.getLength());
+                System.out.println("String Search results: "+nodes.getLength()+" nodes.");
                 
                 for(int i = 0; i < nodes.getLength(); i++) {
                     result = nodes.item(i).getTextContent();
                     resultCod = StringEscapeUtils.unescapeHtml4(result);
                 }
+                
+                System.out.println("Current node value: "+resultCod);
                 
                 return resultCod;
             } catch (XPathExpressionException e) {
@@ -247,7 +241,7 @@ public class HTMLParser{
         
         requestProperties.add(new KeyValue("User-Agent", "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)"));
         requestProperties.add(new KeyValue("Accept-Language", "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3"));
-        requestProperties.add(new KeyValue("Accept", "text/html,text/xml,application/json,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
+        requestProperties.add(new KeyValue("Accept", "text/javascript,application/javascript,application/ecmascript,text/html,text/xml,application/json,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"));
         requestProperties.add(new KeyValue("Connection", "keep-alive"));
         requestProperties.add(new KeyValue("Content-Type", "application/x-www-form-urlencoded,application/json,application/json;charset=UTF-8"));
         requestProperties.add(new KeyValue("Cache-Control", "no-cache"));
