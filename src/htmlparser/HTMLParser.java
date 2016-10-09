@@ -33,9 +33,9 @@ public class HTMLParser{
 
 	public enum Method {GET, POST};
     
-	String URL;
+	String Url;
 	ArrayList<KeyValue> parameters;
-	String xPath1, xPath2;
+	String xPath;
 	ArrayList<KeyValue> requestProperties = new ArrayList<KeyValue>();
 	ArrayList<KeyValue> responseProperties = new ArrayList<KeyValue>();
 	private iLogger logger = null;
@@ -47,43 +47,85 @@ public class HTMLParser{
     
 
 	public HTMLParser(String URL) {
-        init(URL, Method.GET, new ArrayList<KeyValue>(), new String(), new String(), new DefaultLogger());
+        init(URL, Method.GET, new ArrayList<KeyValue>(), new String(), new DefaultLogger());
 	}
     
-	public HTMLParser(String URL, String xPath1) {
-		init(URL, Method.GET, new ArrayList<KeyValue>(), xPath1, new String(), new DefaultLogger());
+	public HTMLParser(String URL, String xPath) {
+		init(URL, Method.GET, new ArrayList<KeyValue>(), xPath, new DefaultLogger());
 	}
 	
-	public HTMLParser(String URL, String xPath1, String xPath2) {
-		init(URL, Method.GET, new ArrayList<KeyValue>(), xPath1, xPath2, new DefaultLogger());
-	}
-	
-	private void init(String URL, Method method, ArrayList<KeyValue> parameters, String xPath1, String xPath2, iLogger logger) {
-        this.URL = URL;
+	private void init(String Url, Method method, ArrayList<KeyValue> parameters, String xPath, iLogger logger) {
+        this.Url = Url;
         this.parameters = parameters;
-        this.xPath1 = xPath1;
-        this.xPath2 = xPath2;
+        this.xPath = xPath;
         this.setLogger(logger);
         this.method = method;
         
-        this.https = URL.toLowerCase().startsWith("https");
+        this.https = Url.toLowerCase().startsWith("https");
     }
 	
-	public ArrayList<String> downloadAsArray() {
+	public ArrayList<String> downloadAsArray(String flag) {
 		ArrayList<String> results = new ArrayList<String>();
+		//System.out.println("Url: "+Url+", xPath: "+xPath);
 		
-		if(!(xPath1.isEmpty())){
-            /*System.out.println("DOWNLOAD AS ARRAY");
-            System.out.println("Url: "+URL);
-            System.out.println("XPath: "+xPath1);*/
-            
+		if(!(xPath.isEmpty())){            
+			try{
+				if((doRequest().toString().contains("Error404")) && flag.contains("pat")){
+					results.add("Error404");
+					
+					return results;
+				}
+				else{
+					if(doRequest().toString().contains("Error404")){
+						System.out.println("You've inserted an inexistent URL.");
+						
+						return results;
+					}
+					else{
+						try{
+			                TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
+			                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
+			                
+			                XPath xpath = XPathFactory.newInstance().newXPath();
+			                
+			                NodeList nodes = (NodeList) xpath.evaluate(xPath, getDoc(), XPathConstants.NODESET);
+			                
+			                System.out.println("Array Search results: "+nodes.getLength()+" nodes.");
+			                
+			                for (int i = 0; i < nodes.getLength(); i++) {
+			                	String str = nodes.item(i).getTextContent();
+			                    String strCod = StringEscapeUtils.unescapeHtml4(str);
+			                    
+			                    //System.out.println("Current node value: "+strCod);                    
+			                    results.add(strCod);
+			                }
+			               
+			                return results;
+			            } catch (XPathExpressionException e) {
+			                    e.printStackTrace();
+			                    logger.log(e.getMessage());
+			            } catch (ParserConfigurationException e) {
+			                    e.printStackTrace();
+			                    logger.log(e.getMessage());
+			            } catch (Exception e) {
+			                    e.printStackTrace();
+			                    logger.log(e.getMessage());
+			            }      
+			        }
+				}
+			}catch(Exception e1){
+				e1.printStackTrace();
+			}
+		}
+			
+			/*
             try{
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
                 doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
                 
                 XPath xpath = XPathFactory.newInstance().newXPath();
                 
-                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
+                NodeList nodes = (NodeList) xpath.evaluate(xPath, getDoc(), XPathConstants.NODESET);
                 
                 System.out.println("Array Search results: "+nodes.getLength()+" nodes.");
                 
@@ -91,8 +133,7 @@ public class HTMLParser{
                 	String str = nodes.item(i).getTextContent();
                     String strCod = StringEscapeUtils.unescapeHtml4(str);
                     
-                    //System.out.println("Current node value: "+strCod);
-                    
+                    //System.out.println("Current node value: "+strCod);                    
                     results.add(strCod);
                 }
                
@@ -108,67 +149,23 @@ public class HTMLParser{
                     logger.log(e.getMessage());
             }      
         }
-        return null;     
-    }
-	
-	public Map<String, String> downloadAsMap(String namePortal) {
-		String str, str2, str3, strCod, urlFixed;
-		DataFixer dF = new DataFixer(namePortal);
-		
-		if(!(xPath1.isEmpty()) && !(xPath2.isEmpty())){
-        	Map<String, String> results = new HashMap<String, String>();
-            
-            try {
-            	TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
-                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
-                
-                XPath xpath1 = XPathFactory.newInstance().newXPath();
-                XPath xpath2 = XPathFactory.newInstance().newXPath();
-                
-                NodeList nodes1 = (NodeList) xpath1.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
-                NodeList nodes2 = (NodeList) xpath2.evaluate(xPath2, getDoc(), XPathConstants.NODESET);
-                    
-                for (int i = 0; i < nodes1.getLength(); i++) {
-                    str = nodes1.item(i).getTextContent();
-                    str2 = str.replace("\n", "");                 	
-                    strCod = StringEscapeUtils.unescapeHtml4(str2);
-                    	
-                    str3 = nodes2.item(i).getTextContent();
-                    urlFixed = dF.fixURL(str3);
-                    	
-                    results.put(strCod, urlFixed);
-                }
-                
-                return results;
-            } catch (XPathExpressionException e) {
-                    e.printStackTrace();
-                    logger.log(e.getMessage());
-            } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                    logger.log(e.getMessage());
-            } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.log(e.getMessage());
-            }            
-        }
+        */
+			
         return null;     
     }
 	
 	public String downloadAsString(){
-		if(!(xPath1.isEmpty())){
-        	String result, resultCod = "";
-        	
-        	/*System.out.println("DOWNLOAD AS STRING");
-        	System.out.println("url: "+URL);
-        	System.out.println("xPath1: "+xPath1);*/
-            
+		String result, resultCod = "";
+		
+		if(!(xPath.isEmpty())){
+			//System.out.println("Url: "+Url+", xPath: "+xPath);            
             try {
                 TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
                 doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
                 
                 XPath xpath = XPathFactory.newInstance().newXPath();
 
-                NodeList nodes = (NodeList) xpath.evaluate(xPath1, getDoc(), XPathConstants.NODESET);
+                NodeList nodes = (NodeList) xpath.evaluate(xPath, getDoc(), XPathConstants.NODESET);
                 
                 System.out.println("String Search results: "+nodes.getLength()+" nodes.");
                 
@@ -177,8 +174,7 @@ public class HTMLParser{
                     resultCod = StringEscapeUtils.unescapeHtml4(result);
                 }
                 
-                System.out.println("Current node value: "+resultCod);
-                
+                //System.out.println("Current node value: "+resultCod);                
                 return resultCod;
             } catch (XPathExpressionException e) {
                     e.printStackTrace();
@@ -208,7 +204,7 @@ public class HTMLParser{
     
     private StringBuffer doRequest(int bytes) throws Exception {
         String urlParameters = getParameters();
-        String url = URL;
+        String url = Url;
         
         if(method == Method.GET && !urlParameters.isEmpty()) {
             if(url.endsWith("&") || url.endsWith("?")) {
@@ -273,11 +269,10 @@ public class HTMLParser{
         
         StringBuffer response = new StringBuffer();
         
-        if(responseCode == 200){
-        	//System.out.println("La url existe");
-        }
-        else{
+        if(responseCode != 200){
         	//System.out.println("La url NO existe");
+        	response.append("Error404");
+        	
         	return response;
         }
         

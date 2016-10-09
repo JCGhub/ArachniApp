@@ -59,13 +59,6 @@
 												</xs:restriction>
 											</xs:simpleType>
 										</xs:element>
-										<xs:element name="numPages">
-											<xs:simpleType>
-												<xs:restriction base="xs:string">
-													<xs:minLength value="1"/>
-												</xs:restriction>
-											</xs:simpleType>
-										</xs:element>
 									</xs:sequence>
 									<xs:attribute name="type" use="required">
 										<xs:simpleType>
@@ -78,8 +71,21 @@
 									<xs:attribute name="size" use="required">
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="all"/>
-												<xs:enumeration value="some"/>
+												<xs:pattern value="all|[0-9]{1,2}"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="initValue" use="optional">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="increment" use="optional">
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -109,14 +115,6 @@
 											</xs:simpleType>
 										</xs:element>
 									</xs:sequence>
-									<xs:attribute name="size" use="required">
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="simple"/>
-												<xs:enumeration value="multiple"/>
-											</xs:restriction>
-										</xs:simpleType>
-									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -137,7 +135,7 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="cat" use="required">
+			<xs:attribute name="category" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
 						<xs:enumeration value="Cookery"/>
@@ -154,11 +152,12 @@
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
-			<xs:attribute name="actualize" use="required">
+			<xs:attribute name="rerun" use="required">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
-						<xs:enumeration value="Yes"/>
-						<xs:enumeration value="No"/>
+						<xs:enumeration value="update"/>
+						<xs:enumeration value="accumulate"/>
+						<xs:enumeration value="no"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

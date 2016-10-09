@@ -33,11 +33,11 @@ public class InfoDownloader{
 	 * @return Devuelve el array con los valores deseados.
 	 */
 	
-	public ArrayList<String> downloadArray(String url, String xPath){
+	public ArrayList<String> downloadArray(String url, String xPath, String flag){
 		ArrayList<String> values_array = new ArrayList<String>();
 		
 		HTMLParser hP = new HTMLParser(url, xPath);
-		values_array = hP.downloadAsArray();
+		values_array = hP.downloadAsArray(flag);
 		
 		return values_array;
 	}
@@ -117,26 +117,26 @@ public class InfoDownloader{
 	 * @param nextPageXpath, Ruta xPath que contiene la URL que nos conduce a la siguiente página.
 	 * @param nextPageNumPages, Número de páginas que se desean recorrer.
 	 * @param mainEntityXpath, Ruta xPath que contiene la URL de la entidad principal.
+	 * @param urlType, Tipo de la URL en referencia a si la web nos la proporciona completa o incompleta.
 	 * @param urlRoot, Raíz de la URL para concatenarla a una dirección que está incompleta.
 	 * @return Devuelve un array con todas las URLs de las entidades de las que se desea extraer información.
 	 */
 	
-	public ArrayList<String> nextPagesButton(String url, String nextPageSize, String nextPageXpath, String nextPageNumPages, String mainEntityXpath, String urlType, String urlRoot){
+	public ArrayList<String> nextPagesButton(String url, String nextPageSize, String nextPageXpath, String mainEntityXpath, String urlType, String urlRoot){
 		ArrayList<String> currentUrl_array = new ArrayList<String>();
 		ArrayList<String> multMainEntity_array = new ArrayList<String>();
 		String currentUrl = url, previousUrl = "";
 		boolean lastPage = false;
 		int k = 0;
-		int nextPage = Integer.parseInt(nextPageNumPages);
 		
-		if(nextPageSize == "all"){
+		if(nextPageSize.contains("all")){
 			while((!(downloadString(currentUrl, nextPageXpath).isEmpty()) || lastPage == false)){
 				if(downloadString(currentUrl, nextPageXpath).isEmpty() && lastPage == false){
 					System.out.println("Downloading main entities (indefinite pages | last page)...");
-					currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+					currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);
 					lastPage = true;
 					
-					if(urlType == "incomplete"){
+					if(urlType.contains("incomplete")){
 						currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 					}
 					
@@ -147,13 +147,13 @@ public class InfoDownloader{
 				else{
 					String nextUrl = downloadString(currentUrl, nextPageXpath);
 						
-					if(urlType == "incomplete"){
+					if(urlType.contains("incomplete")){
 						//System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
 						//System.out.println("** previousUrl: "+previousUrl);
 						
 						if(!(completeURL(nextUrl, urlRoot).equals(previousUrl))){
 							System.out.println("Downloading main entities (indefinite pages)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);						
 							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 							
 							previousUrl = currentUrl;
@@ -161,7 +161,7 @@ public class InfoDownloader{
 						}
 						else{
 							System.out.println("Downloading main entities (indefinite pages | anti-loop)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);						
 							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 							
 							for(int i = 0; i < currentUrl_array.size(); i++){
@@ -177,14 +177,14 @@ public class InfoDownloader{
 						
 						if(nextUrl != previousUrl){
 							System.out.println("Downloading main entities (indefinite pages)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);
 							
 							previousUrl = currentUrl;
 							currentUrl = nextUrl;
 						}
 						else{
 							System.out.println("Downloading main entities (indefinite pages)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);
 							
 							for(int i = 0; i < currentUrl_array.size(); i++){
 								multMainEntity_array.add(currentUrl_array.get(i));
@@ -201,13 +201,15 @@ public class InfoDownloader{
 			}
 		}
 		else{
-			while(((!(downloadString(currentUrl, nextPageXpath).isEmpty()) || lastPage == false)) && k < nextPage){
+			int numPages = Integer.parseInt(nextPageSize);
+			
+			while(((!(downloadString(currentUrl, nextPageXpath).isEmpty()) || lastPage == false)) && k < numPages){
 				if(downloadString(currentUrl, nextPageXpath).isEmpty() && lastPage == false){
 					System.out.println("Downloading main entities (several pages | last page)...");
-					currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+					currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);
 					lastPage = true;
 					
-					if(urlType == "incomplete"){
+					if(urlType.contains("incomplete")){
 						currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 					}
 					
@@ -218,13 +220,13 @@ public class InfoDownloader{
 				else{
 					String nextUrl = downloadString(currentUrl, nextPageXpath);
 						
-					if(urlType == "incomplete"){
+					if(urlType.contains("incomplete")){
 						//System.out.println("** nextUrl: "+completeURL(nextUrl, urlRoot));
 						//System.out.println("** previousUrl: "+previousUrl);
 						
 						if(!(completeURL(nextUrl, urlRoot).equals(previousUrl))){
 							System.out.println("Downloading main entities (several pages)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);						
 							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 							
 							previousUrl = currentUrl;
@@ -232,7 +234,7 @@ public class InfoDownloader{
 						}
 						else{
 							System.out.println("Downloading main entities (several pages | anti-loop)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);						
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);						
 							currentUrl_array = completeURLs(currentUrl_array, urlRoot);
 							
 							for(int i = 0; i < currentUrl_array.size(); i++){
@@ -248,14 +250,14 @@ public class InfoDownloader{
 						
 						if(nextUrl != previousUrl){
 							System.out.println("Downloading main entities (several pages)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);
 							
 							previousUrl = currentUrl;
 							currentUrl = nextUrl;
 						}
 						else{
 							System.out.println("Downloading main entities (several pages)...");
-							currentUrl_array = downloadArray(currentUrl, mainEntityXpath);
+							currentUrl_array = downloadArray(currentUrl, mainEntityXpath, null);
 							
 							for(int i = 0; i < currentUrl_array.size(); i++){
 								multMainEntity_array.add(currentUrl_array.get(i));
@@ -276,56 +278,114 @@ public class InfoDownloader{
 		return multMainEntity_array;
 	}
 	
-	/*public ArrayList<String> nextPagesPattern(String url, String urlPatt, String initValue, String value, String mainEntXPath, String urlRoot){
-		ArrayList<String> currArray = new ArrayList<String>();
-		ArrayList<String> multMainEnt = new ArrayList<String>();
-		String currUrl = urlPatt, strMatch = "", newUrl = url;		
-		int valueInt = Integer.parseInt(value);
-		int initValueInt = Integer.parseInt(initValue);
-		int valueIntCount = initValueInt;
+	/**
+	 * Función que realiza las acciones necesarias para la navegación entre páginas que contienen entidades principales
+	 * de las cuales se desea descargar información, usando un patrón establecido en la URL para la paginación.
+	 * 
+	 * @param url, Dirección URL de la entidad principal. Es la especificada en el fichero de configuración.
+	 * @param nextPageSize, Variable que determina si se quieren recorrer todas las páginas con entidades o sólo algunas.
+	 * @param nextPageRule, URL modificada con la señalización del patrón que se quiere modificar para la paginación.
+	 * @param nextPageInitValue, Valor inicial con el que empieza el patrón. Suele ser 0 o 1, dependiendo de la web a examinar.
+	 * @param nextPageIncrement, Valor que se va incrementando al valor del patrón.
+	 * @param mainEntityXpath, Ruta xPath que contiene la URL de la entidad principal.
+	 * @param urlType, Tipo de la URL en referencia a si la web nos la proporciona completa o incompleta.
+	 * @param urlRoot, Raíz de la URL para concatenarla a una dirección que está incompleta.
+	 * @return Devuelve un array con todas las URLs de las entidades de las que se desea extraer información.
+	 */
+	
+	public ArrayList<String> nextPagesPattern(String url, String nextPageSize, String nextPageRule, String nextPageInitValue, String nextPageIncrement, String mainEntityXpath, String urlType, String urlRoot){
+		ArrayList<String> currentUrl_array = new ArrayList<String>();
+		ArrayList<String> multMainEntity_array = new ArrayList<String>();
+		String currentUrl = nextPageRule, strMatch = "", newUrl = url;		
+		int increment = Integer.parseInt(nextPageIncrement);
+		int initValue = Integer.parseInt(nextPageInitValue);
+		int countValue = initValue;
 		Pattern regEx;
 		Matcher match;
 		boolean lastPage = false;
+		int k = 0;
 		
-		regEx = Pattern.compile("\\{\\{.+\\}\\}");
-		match = regEx.matcher(urlPatt);
+		regEx = Pattern.compile("#p#.+#p#");
+		match = regEx.matcher(nextPageRule);
 		
 		while(match.find()){
 			strMatch = match.group();
 		}
 		
-		while(lastPage == false){
-			valueIntCount = valueIntCount + valueInt;
-			
-			String valueStrCount = Integer.toString(valueIntCount);
-			
-			String newPatt = strMatch.replace("pattern", valueStrCount);
-			String newPattFixed1 = newPatt.replaceAll("\\{\\{", "");
-			String newPattFixed2 = newPattFixed1.replaceAll("\\}\\}", "");
-			
-			//System.out.println("** new Pattern "+newPatt);
-			//System.out.println("** new Pattern fixed "+newPattFixed2);
-			
-			System.out.println("** current Url: "+newUrl);
-			
-			currArray = downloadArray(newUrl, mainEntXPath, null);
+		System.out.println("nextPageSize: "+nextPageSize);
+		
+		if(nextPageSize.contains("all")){
+			while(lastPage == false){
+				countValue = countValue + increment;
 				
-			newUrl = currUrl.replace(strMatch, newPattFixed2);
-			
-			if(currArray.get(0).contains("Last")){
-				lastPage = true;
+				String valueStrCount = Integer.toString(countValue);
+				
+				String newPatt = strMatch.replace("pattern", valueStrCount);
+				String newPattFixed1 = newPatt.replaceAll("#p#", "");
+				
+				//System.out.println("** new Pattern "+newPatt);
+				//System.out.println("** new Pattern fixed "+newPattFixed2);
+				
+				System.out.println("** current Url: "+newUrl);
+				//System.out.println("** xPath: "+mainEntityXpath);
+				
+				currentUrl_array = downloadArray(newUrl, mainEntityXpath, "pat");
+					
+				newUrl = currentUrl.replace(strMatch, newPattFixed1);
+				
+				if(currentUrl_array.get(0).contains("Error404")){
+					System.out.println("Last page (pattern) detected!");
+					lastPage = true;
+				}
+				else{
+					if(urlType.contains("incomplete")){
+						currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+					}
+					
+					for(int i = 0; i < currentUrl_array.size(); i++){
+						multMainEntity_array.add(currentUrl_array.get(i));
+					}
+				}							
 			}
-			else{
-				if(urlRoot != null){
-					currArray = completeURLs(currArray, urlRoot);
-				}
+		}
+		else{
+			int numPages = Integer.parseInt(nextPageSize);
+			
+			while(lastPage == false && k < numPages){
+				countValue = countValue + increment;
 				
-				for(int i = 0; i < currArray.size(); i++){
-					multMainEnt.add(currArray.get(i));
+				String valueStrCount = Integer.toString(countValue);
+				
+				String newPatt = strMatch.replace("pattern", valueStrCount);
+				String newPattFixed1 = newPatt.replaceAll("#p#", "");
+				
+				//System.out.println("** new Pattern "+newPatt);
+				//System.out.println("** new Pattern fixed "+newPattFixed2);
+				
+				System.out.println("** current Url: "+newUrl);
+				//System.out.println("** xPath: "+mainEntityXpath);
+				
+				currentUrl_array = downloadArray(newUrl, mainEntityXpath, "pat");
+					
+				newUrl = currentUrl.replace(strMatch, newPattFixed1);
+				
+				if(currentUrl_array.get(0).contains("Error404")){
+					System.out.println("Last page (pattern) detected!");
+					lastPage = true;
 				}
-			}							
+				else{
+					if(urlType.contains("incomplete")){
+						currentUrl_array = completeURLs(currentUrl_array, urlRoot);
+					}
+					
+					for(int i = 0; i < currentUrl_array.size(); i++){
+						multMainEntity_array.add(currentUrl_array.get(i));
+					}
+				}	
+				k++;
+			}
 		}
 	
-		return multMainEnt;
-	}*/
+		return multMainEntity_array;
+	}
 }

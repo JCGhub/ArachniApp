@@ -11,23 +11,21 @@ import database.ConnectDB;
  *
  * Clase creada para la organización de la ejecución del fichero de configuración.
  *
- * 'multMainEntity'		Array que almacena cada una de las URLs de cada entidad perteneciente a la entidad principal múltiple.
- * 'multAttribute'		Array que almacena los valores de un atributo múltiple.
- * 'simpleAttribute'	Variable que almacena el valor de un atributo simple.
- * 'mainEntity_array'	Array que almacena los parámetros y reglas de la entidad principal.
- * 'confFile_array' 	Array que almacena los parámetros del fichero de configuración.
- * 'nextPage_array'		Array que almacena los parámetros y reglas de la función de página siguiente.
- * 'attributes_array'	Array que almacena los parámetros y reglas de los atributos de las entidades.
- * 'url'				Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
- * 'db'					Instancia de ConnectDB para la gestión de funciones de tratamiento de la base de datos.
- * 'iD'					Instancia de InfoDownloader para el uso de las funciones de dicha clase.
+ * 'multMainEntity_array'	Array que almacena cada una de las URLs de cada entidad perteneciente a la entidad principal múltiple.
+ * 'attributeValues_array'	Array que almacena los valores de un atributo múltiple.
+ * 'mainEntity_array'		Array que almacena los parámetros y reglas de la entidad principal.
+ * 'confFile_array' 		Array que almacena los parámetros del fichero de configuración.
+ * 'nextPage_array'			Array que almacena los parámetros y reglas de la función de página siguiente.
+ * 'attributes_array'		Array que almacena todos los atributos asociados a cada entidad, que a su vez almacena los parámetros de cada atributo.
+ * 'url'					Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
+ * 'db'						Instancia de ConnectDB para la gestión de funciones de tratamiento de la base de datos.
+ * 'iD'						Instancia de InfoDownloader para el uso de las funciones de dicha clase.
  */
 
 public class InfoOrganizator{
 	
 	ArrayList<String> multMainEntity_array = new ArrayList<String>();
-	ArrayList<String> multAttribute_array = new ArrayList<String>();
-	String simpleAttribute;	
+	ArrayList<String> attributeValues_array = new ArrayList<String>();
 	ArrayList<String> mainEntity_array = new ArrayList<String>();
 	ArrayList<String> confFile_array = new ArrayList<String>();
 	ArrayList<String> nextPage_array = new ArrayList<String>();
@@ -43,7 +41,7 @@ public class InfoOrganizator{
 	 * @param confFile_array, Array que almacena los parámetros del fichero de configuración.
 	 * @param mainEntity_array, Array que almacena los parámetros y reglas de la entidad principal.
 	 * @param nextPage_array, Array que almacena los parámetros y reglas de la función de página siguiente.
-	 * @param attributes_array, Array que almacena los parámetros y reglas de los atributos de las entidades.
+	 * @param attributes_array, Array que almacena todos los atributos asociados a cada entidad, que a su vez almacena los parámetros de cada atributo.
 	 * @param db, Instancia de la clase ConnectDB.
 	 */
 	
@@ -77,7 +75,7 @@ public class InfoOrganizator{
 			
 			if(nextPage_array.isEmpty()){
 				System.out.println("Downloading main entities...");
-				multMainEntity_array = iD.downloadArray(url, mainEntityXpath);
+				multMainEntity_array = iD.downloadArray(url, mainEntityXpath, null);
 				
 				if(urlType.contains("incomplete")){
 					multMainEntity_array = iD.completeURLs(multMainEntity_array, urlRoot);
@@ -104,17 +102,20 @@ public class InfoOrganizator{
 	public void nextPageExecution(String mainEntityXpath, String urlRoot){		
 		String nextPageType = nextPage_array.get(0);
 		String nextPageSize = nextPage_array.get(1);
-		String nextPageXpath = nextPage_array.get(2);
-		String nextPageNumPages = nextPage_array.get(3);
+		String nextPageRule = nextPage_array.get(2);
 		String urlType = mainEntity_array.get(1);
 		
 		switch(nextPageType){
 		case "button":			
-			multMainEntity_array = iD.nextPagesButton(url, nextPageSize, nextPageXpath, nextPageNumPages, mainEntityXpath, urlType, urlRoot);				
+			multMainEntity_array = iD.nextPagesButton(url, nextPageSize, nextPageRule, mainEntityXpath, urlType, urlRoot);				
 	
 			break;
 		case "pattern":
-			//Hacer de otro modo			
+			String nextPageInitValue = nextPage_array.get(3);
+			String nextPageIncrement = nextPage_array.get(4);
+			
+			multMainEntity_array = iD.nextPagesPattern(url, nextPageSize, nextPageRule, nextPageInitValue, nextPageIncrement, mainEntityXpath, urlType, urlRoot);
+			
 			break;
 		default:
 			break;
@@ -131,27 +132,15 @@ public class InfoOrganizator{
 	
 	public void simpleEntityExecution(){
 		for(int i = 0; i < attributes_array.size(); i++){
-			String attributeSize = attributes_array.get(i).get(0);
-			String attributeRule = attributes_array.get(i).get(2);
-			
-			if(attributeSize.contains("simple")){
-				simpleAttribute = iD.downloadString(url, attributeRule);
+			String attributeRule = attributes_array.get(i).get(1);
+								
+			attributeValues_array = iD.downloadArray(url, attributeRule, null);
 				
+			for(int j = 0; j < attributeValues_array.size(); j++){
 				try{
-					insertValuesDB(simpleAttribute, i, url);
+					insertValuesDB(attributeValues_array.get(j), i, url);
 				}catch(SQLException e){
 					e.printStackTrace();
-				}
-			}
-			else{					
-				multAttribute_array = iD.downloadArray(url, attributeRule);
-				
-				for(int j = 0; j < multAttribute_array.size(); j++){
-					try{
-						insertValuesDB(multAttribute_array.get(j), i, url);
-					}catch(SQLException e){
-						e.printStackTrace();
-					}
 				}
 			}
 		}
@@ -165,27 +154,15 @@ public class InfoOrganizator{
 	public void multEntityExecution(){
 		for(int i = 0; i < multMainEntity_array.size(); i++){
 			for(int j = 0; j < attributes_array.size(); j++){
-				String attributeSize = attributes_array.get(j).get(0);
-				String attributeRule = attributes_array.get(j).get(2);
-				
-				if(attributeSize.contains("simple")){
-					simpleAttribute = iD.downloadString(multMainEntity_array.get(i), attributeRule);
+				String attributeRule = attributes_array.get(j).get(1);
+									
+				attributeValues_array = iD.downloadArray(multMainEntity_array.get(i), attributeRule, null);
 					
+				for(int k = 0; k < attributeValues_array.size(); k++){
 					try{
-						insertValuesDB(simpleAttribute, j, multMainEntity_array.get(i));
-					}catch (SQLException e){
+						insertValuesDB(attributeValues_array.get(k), j, multMainEntity_array.get(i));
+					}catch(SQLException e){
 						e.printStackTrace();
-					}
-				}
-				else{						
-					multAttribute_array = iD.downloadArray(multMainEntity_array.get(i), attributeRule);
-					
-					for(int k = 0; k < multAttribute_array.size(); k++){
-						try{
-							insertValuesDB(multAttribute_array.get(k), j, multMainEntity_array.get(i));
-						}catch(SQLException e){
-							e.printStackTrace();
-						}
 					}
 				}
 			}
@@ -206,7 +183,7 @@ public class InfoOrganizator{
 		ResultSet confFileRS = db.getConfFileId(confFile_array.get(0));
 		ResultSet webPortalRS = db.getWebPortalId(confFile_array.get(1));
 		ResultSet categoryRS = db.getCategoryId(confFile_array.get(2));
-		String nameAttribute = attributes_array.get(index).get(1);
+		String nameAttribute = attributes_array.get(index).get(0);
 		
 		while(confFileRS.next()){
 			confFileId = confFileRS.getInt(1);
@@ -248,25 +225,11 @@ public class InfoOrganizator{
 	 *
 	 */
 	
-	public void showMultAttribute_array(){
-		if(!(multAttribute_array == null)){
-			for(int i = 0; i < multAttribute_array.size(); i++){
-				System.out.println(i+": "+multAttribute_array.get(i));
+	public void showAttributeValues_array(){
+		if(!(attributeValues_array == null)){
+			for(int i = 0; i < attributeValues_array.size(); i++){
+				System.out.println(i+": "+attributeValues_array.get(i));
 			}
-		}
-		else{
-			System.out.println("This attribute hasn't values");
-		}
-	}
-	
-	/**
-	 * Función para visualizar el valor del atributo actual que está almacenado en la variable simpleAttribute.
-	 *
-	 */
-	
-	public void showSimpleAttribute(){
-		if(!(simpleAttribute.isEmpty())){
-			System.out.println(simpleAttribute);
 		}
 		else{
 			System.out.println("This attribute hasn't values");

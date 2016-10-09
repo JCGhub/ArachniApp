@@ -33,7 +33,7 @@ import database.ConnectDB;
  * 'mainEntity_array'	Array que almacena los parámetros y reglas de la entidad principal.
  * 'confFile_array' 	Array que almacena los parámetros del fichero de configuración.
  * 'nextPage_array'		Array que almacena los parámetros y reglas de la función de página siguiente.
- * 'attributes_array'	Array que almacena los parámetros y reglas de los atributos de las entidades.
+ * 'attributes_array'	Array que almacena todos los atributos asociados a cada entidad, que a su vez almacena los parámetros de cada atributo.
  * 'xmlFile'			Variable de tipo Document generada para la gestión de los nodos del fichero xml.
  * 'xml'				Ruta en la que se sitúa el fichero xml que se va a leer.
  * 'url'				Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
@@ -111,12 +111,12 @@ public class XMLReader{
 		String confFileAtt2 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("web_portal").getNodeValue();
 		confFile_array.add(confFileAtt2);
 		xmlContent_array.add("Web Portal: "+confFileAtt2);
-    	String confFileAtt3 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("cat").getNodeValue();
+    	String confFileAtt3 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("category").getNodeValue();
     	confFile_array.add(confFileAtt3);
     	xmlContent_array.add("Category: "+confFileAtt3);
-    	String confFileAtt4 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("actualize").getNodeValue();
+    	String confFileAtt4 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("rerun").getNodeValue();
     	confFile_array.add(confFileAtt4);
-    	xmlContent_array.add("Actualize: "+confFileAtt4);
+    	xmlContent_array.add("Rerun: "+confFileAtt4);
     	
     	//Extraemos la url
     	
@@ -171,16 +171,20 @@ public class XMLReader{
 				String nextPageSize = xmlFile.getElementsByTagName("next_page").item(0).getAttributes().getNamedItem("size").getNodeValue();
 				nextPage_array.add(nextPageSize);
 				xmlContent_array.add("Size: "+nextPageSize);
-		    	
-		    	Node nextPageRule_node = nextPage.getElementsByTagName("rule").item(0);
+				
+				Node nextPageRule_node = nextPage.getElementsByTagName("rule").item(0);
 				String nextPageRule = nextPageRule_node.getFirstChild().getNodeValue();
 				nextPage_array.add(nextPageRule);
 				xmlContent_array.add("Rule: "+nextPageRule);
 				
-				Node nextPageNumPages_node = nextPage.getElementsByTagName("numPages").item(0);
-				String nextPageNumPages = nextPageNumPages_node.getFirstChild().getNodeValue();
-				nextPage_array.add(nextPageNumPages);
-				xmlContent_array.add("Number of Pages: "+nextPageNumPages);
+				if(xmlFile.getElementsByTagName("next_page").item(0).getAttributes().getLength() > 2){
+					String nextPageInitValue = xmlFile.getElementsByTagName("next_page").item(0).getAttributes().getNamedItem("initValue").getNodeValue();
+					nextPage_array.add(nextPageInitValue);
+					xmlContent_array.add("Initial Value: "+nextPageInitValue);
+					String nextPageIncrement = xmlFile.getElementsByTagName("next_page").item(0).getAttributes().getNamedItem("increment").getNodeValue();
+					nextPage_array.add(nextPageIncrement);
+					xmlContent_array.add("Increment Value: "+nextPageIncrement);
+				}		    	
 			}
     	}
     	
@@ -202,10 +206,6 @@ public class XMLReader{
 	    		
 	    		Node field_node = field_list.item(j);
 				Element field = (Element)field_node;
-				
-				String attributeSize = field_node.getAttributes().getNamedItem("size").getNodeValue();
-				attributes_currArray.add(attributeSize);
-				xmlContent_array.add("Size: "+attributeSize);
 				
 				Node attributeName_node = field.getElementsByTagName("name").item(0);
 				String attributeName = attributeName_node.getFirstChild().getNodeValue();
