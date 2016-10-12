@@ -72,7 +72,7 @@ public class ConnectDB{
 					+ "name varchar(100) NOT NULL, "
 					+ "id_wp int(255) NOT NULL, "
 					+ "id_cat int(255) NOT NULL, "
-					+ "file_date date NOT NULL,"
+					+ "file_date datetime NOT NULL,"
 					+ "PRIMARY KEY(id_cf),"
 					+ "FOREIGN KEY(id_wp) REFERENCES web_portal(id_wp),"
 					+ "FOREIGN KEY(id_cat) REFERENCES category(id_cat))"
@@ -97,6 +97,7 @@ public class ConnectDB{
 					+ "name varchar(200) NOT NULL, "
 					+ "value text NOT NULL, "
 					+ "entity bigint(255) NOT NULL, "
+					+ "date datetime NOT NULL,"
 					+ "id_wp int(255) DEFAULT NULL, "
 					+ "id_cf int(255) NOT NULL, "
 					+ "id_cat int(255) NOT NULL, "
@@ -173,10 +174,22 @@ public class ConnectDB{
         }
     }
     
-    public void insertStringParams(String name, String value, int entity, int web_portal, int conf_file, int category){
+    public void insertStringParams(String name, String value, int entity, String date, int web_portal, int conf_file, int category){
     	try {
-            String Query = "INSERT INTO string_info (id_stri, name, value, entity, id_wp, id_cf, id_cat) "
-            		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+web_portal+"', '"+conf_file+"', '"+category+"');";
+            String Query = "INSERT INTO string_info (id_stri, name, value, entity, date, id_wp, id_cf, id_cat) "
+            		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+date+"', '"+web_portal+"', '"+conf_file+"', '"+category+"');";
+            
+            Statement st = Conn.createStatement();
+            st.executeUpdate(Query);
+            //JOptionPane.showMessageDialog(null, "String information have been inserted successfully!");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "ERROR: String information haven't been inserted successfully!");
+        }
+    }
+    
+    public void deleteStringParamsByConfFile(int confFileId){
+    	try {
+            String Query = "DELETE FROM string_info WHERE id_cf = '"+confFileId+"'";;
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);

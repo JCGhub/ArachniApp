@@ -117,6 +117,9 @@ public class XMLReader{
     	String confFileAtt4 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("rerun").getNodeValue();
     	confFile_array.add(confFileAtt4);
     	xmlContent_array.add("Rerun: "+confFileAtt4);
+    	String confFileAtt5 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("time").getNodeValue();
+    	confFile_array.add(confFileAtt5);
+    	xmlContent_array.add("Time (minutes): "+confFileAtt5);
     	
     	//Extraemos la url
     	
@@ -233,82 +236,6 @@ public class XMLReader{
     	InfoOrganizator iO = new InfoOrganizator(url, confFile_array, mainEntity_array, nextPage_array, attributes_array, db);
 	
     	return iO;
-	}
-	
-	/**
-	 * Función creada para la inserción en la base de datos de los parámetros que corresponden al fichero de configuración.
-	 * Es llamada desde MainWindow.
-	 * 
-	 * @return Devuelve b, que será true si el nombre del fichero ya existe ó false en caso contrario y por tanto se dispone a introducirlo en la base de datos.
-	 */
-	
-	public boolean prepareConfFileParameters(){
-		String fileConfName = confFile_array.get(0);
-		String webPortal = confFile_array.get(1);
-		String category = confFile_array.get(2);
-		String date;		
-		boolean b = false;
-		
-		try{
-			ResultSet rS = db.getNameConfFile();
-			Calendar cal = Calendar.getInstance();
-			int webPortalId = 0, categoryId = 0;
-			
-			ResultSet webPortalRS = db.getWebPortalId(webPortal);
-			ResultSet categoryRS = db.getCategoryId(category);
-			
-			while(webPortalRS.next()){
-				webPortalId = webPortalRS.getInt(1);
-			}
-			
-			while(categoryRS.next()){
-				categoryId = categoryRS.getInt(1);
-			}
-			
-		    String day = Integer.toString(cal.get(Calendar.DATE));
-		    String month = Integer.toString((cal.get(Calendar.MONTH)+1));
-		    String year = Integer.toString(cal.get(Calendar.YEAR));
-		    
-		    date = year+"-"+month+"-"+day;
-		    
-		    while(rS.next()){			
-				if(rS.getString("name").equals(fileConfName)){
-					return true;
-				}
-			}
-			
-			db.insertConfFileParameters(fileConfName, webPortalId, categoryId, date);
-		}catch(SQLException e){
-			e.printStackTrace();
-		}
-		
-		return b;
-	}
-	
-	/**
-	 * Función creada para la inserción, en caso de que aun no exista, del parámetro web_portal del fichero de configuración en la base de datos.
-	 * 
-	 */
-	
-	public void prepareWebPortalParameters(){
-		String webPortal = confFile_array.get(1);
-		boolean b = false;
-		
-		try{
-			ResultSet rS = db.getWebPortal();			
-			
-			while(rS.next()){			
-				if(rS.getString("name").equals(webPortal)){
-					b = true;
-				}
-			}
-			
-			if(!b){
-				db.insertWebPortalParameters(webPortal);
-			}
-		}catch(SQLException e){
-			e.printStackTrace();
-		}
 	}
 	
 	/**

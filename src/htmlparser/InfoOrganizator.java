@@ -3,6 +3,7 @@ package htmlparser;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import database.ConnectDB;
 
@@ -27,7 +28,7 @@ public class InfoOrganizator{
 	ArrayList<String> multMainEntity_array = new ArrayList<String>();
 	ArrayList<String> attributeValues_array = new ArrayList<String>();
 	ArrayList<String> mainEntity_array = new ArrayList<String>();
-	ArrayList<String> confFile_array = new ArrayList<String>();
+	public ArrayList<String> confFile_array = new ArrayList<String>();
 	ArrayList<String> nextPage_array = new ArrayList<String>();
 	ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
 	String url;
@@ -52,6 +53,74 @@ public class InfoOrganizator{
 		this.nextPage_array = nextPage_array;
 		this.attributes_array = attributes_array;
 		this.db = db;
+	}
+	
+	/**
+	 * Función creada para la inserción en la base de datos de los parámetros que corresponden al fichero de configuración.
+	 * Es llamada desde MainWindow.
+	 * 
+	 * @return Devuelve b, que será true si el nombre del fichero ya existe ó false en caso contrario y por tanto se dispone a introducirlo en la base de datos.
+	 */
+	
+	public boolean prepareConfFileParameters(){
+		String fileConfName = confFile_array.get(0);
+		String webPortal = confFile_array.get(1);
+		String category = confFile_array.get(2);
+		boolean b = false;
+		
+		try{
+			ResultSet rS = db.getNameConfFile();
+			int webPortalId = 0, categoryId = 0;
+			
+			ResultSet webPortalRS = db.getWebPortalId(webPortal);
+			ResultSet categoryRS = db.getCategoryId(category);
+			
+			while(webPortalRS.next()){
+				webPortalId = webPortalRS.getInt(1);
+			}
+			
+			while(categoryRS.next()){
+				categoryId = categoryRS.getInt(1);
+			}
+		    
+		    while(rS.next()){			
+				if(rS.getString("name").equals(fileConfName)){
+					return true;
+				}
+			}
+			
+			db.insertConfFileParameters(fileConfName, webPortalId, categoryId, dateMaker());
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return b;
+	}
+	
+	/**
+	 * Función creada para la inserción, en caso de que aun no exista, del parámetro web_portal del fichero de configuración en la base de datos.
+	 * 
+	 */
+	
+	public void prepareWebPortalParameters(){
+		String webPortal = confFile_array.get(1);
+		boolean b = false;
+		
+		try{
+			ResultSet rS = db.getWebPortal();			
+			
+			while(rS.next()){			
+				if(rS.getString("name").equals(webPortal)){
+					b = true;
+				}
+			}
+			
+			if(!b){
+				db.insertWebPortalParameters(webPortal);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -131,14 +200,28 @@ public class InfoOrganizator{
 	 */
 	
 	public void simpleEntityExecution(){
+		String rerun = confFile_array.get(3);
+		int confFileId = 0;
+		
+		try{
+			confFileId = getConfFileId();
+		}catch(SQLException e1){
+			e1.printStackTrace();
+		}
+		
+		if(rerun.contains("update")){
+			db.deleteStringParamsByConfFile(confFileId);
+		}
+		
 		for(int i = 0; i < attributes_array.size(); i++){
 			String attributeRule = attributes_array.get(i).get(1);
-								
+			
+			String date = dateMaker();
 			attributeValues_array = iD.downloadArray(url, attributeRule, null);
 				
 			for(int j = 0; j < attributeValues_array.size(); j++){
 				try{
-					insertValuesDB(attributeValues_array.get(j), i, url);
+					insertValuesDB(attributeValues_array.get(j), i, url, date);
 				}catch(SQLException e){
 					e.printStackTrace();
 				}
@@ -152,15 +235,29 @@ public class InfoOrganizator{
 	 */
 	
 	public void multEntityExecution(){
+		String rerun = confFile_array.get(3);
+		int confFileId = 0;
+		
+		try{
+			confFileId = getConfFileId();
+		}catch(SQLException e1){
+			e1.printStackTrace();
+		}
+		
+		if(rerun.contains("update")){
+			db.deleteStringParamsByConfFile(confFileId);
+		}
+		
 		for(int i = 0; i < multMainEntity_array.size(); i++){
 			for(int j = 0; j < attributes_array.size(); j++){
 				String attributeRule = attributes_array.get(j).get(1);
-									
+				
+				String date = dateMaker();
 				attributeValues_array = iD.downloadArray(multMainEntity_array.get(i), attributeRule, null);
 					
 				for(int k = 0; k < attributeValues_array.size(); k++){
 					try{
-						insertValuesDB(attributeValues_array.get(k), j, multMainEntity_array.get(i));
+						insertValuesDB(attributeValues_array.get(k), j, multMainEntity_array.get(i), date);
 					}catch(SQLException e){
 						e.printStackTrace();
 					}
@@ -177,17 +274,12 @@ public class InfoOrganizator{
 	 * @throws SQLException
 	 */
 	
-	public void insertValuesDB(String value, int index, String urlEntity) throws SQLException{
+	public void insertValuesDB(String value, int index, String urlEntity, String date) throws SQLException{
 		int numEntity = urlEntity.hashCode();
-		int confFileId = 0, webPortalId = 0, categoryId = 0;
-		ResultSet confFileRS = db.getConfFileId(confFile_array.get(0));
+		int confFileId = getConfFileId(), webPortalId = 0, categoryId = 0;
 		ResultSet webPortalRS = db.getWebPortalId(confFile_array.get(1));
 		ResultSet categoryRS = db.getCategoryId(confFile_array.get(2));
 		String nameAttribute = attributes_array.get(index).get(0);
-		
-		while(confFileRS.next()){
-			confFileId = confFileRS.getInt(1);
-		}
 		
 		while(webPortalRS.next()){
 			webPortalId = webPortalRS.getInt(1);
@@ -195,9 +287,50 @@ public class InfoOrganizator{
 		
 		while(categoryRS.next()){
 			categoryId = categoryRS.getInt(1);
-		}	
+		}
 		
-		db.insertStringParams(nameAttribute, value, numEntity, webPortalId, confFileId, categoryId);
+		db.insertStringParams(nameAttribute, value, numEntity, date, webPortalId, confFileId, categoryId);
+	}
+	
+	/**
+	 * Función que devuelve el Id del fichero de configuración asignado en la base de datos a partir de su nombre.
+	 * 
+	 * @return Devuelve el Id del fichero de configuración.
+	 * @throws SQLException
+	 */
+	
+	public int getConfFileId() throws SQLException{
+		int confFileId = 0;
+				
+		ResultSet confFileRS = db.getConfFileId(confFile_array.get(0));
+		
+		while(confFileRS.next()){
+			confFileId = confFileRS.getInt(1);
+		}
+		
+		return confFileId;
+	}
+	
+	/**
+	 * Función que genera la fecha actual del sistema para asignarsela o bien a la entrada del fichero de configuración
+	 * o bien a los atributos de cada entidad.
+	 * 
+	 * @return Devuelve la fecha del sistema.
+	 */
+	
+	public String dateMaker(){
+		String date;
+		Calendar cal = Calendar.getInstance();
+		
+		String day = Integer.toString(cal.get(Calendar.DATE));
+	    String month = Integer.toString((cal.get(Calendar.MONTH)+1));
+	    String year = Integer.toString(cal.get(Calendar.YEAR));
+	    String hour = Integer.toString(cal.get(Calendar.HOUR_OF_DAY));
+	    String minutes = Integer.toString(cal.get(Calendar.MINUTE));
+	    
+	    date = year+"-"+month+"-"+day+" "+hour+":"+minutes+":00";
+	    
+	    return date;
 	}
 	
 	/**

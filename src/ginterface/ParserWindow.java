@@ -18,13 +18,8 @@ import htmlparser.XMLReader;
 public class ParserWindow extends JFrame {
 
 	private JPanel contentPane;
-	private XMLReader xR;
-	ConnectDB db;
 	
-	public ParserWindow(XMLReader xR, ConnectDB db){
-		this.xR = xR;
-		this.db = db;
-		
+	public ParserWindow(XMLReader xR, InfoOrganizator iO, ConnectDB db){		
 		setTitle("ArachniApp · Parser");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 315, 200);
@@ -74,9 +69,25 @@ public class ParserWindow extends JFrame {
 		JButton btnParseWeb = new JButton("Parse web");
 		btnParseWeb.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				InfoOrganizator iO = xR.infoReady();
+				String rerun = iO.confFile_array.get(3);
+				String time_string = iO.confFile_array.get(4);
+				int timeMinutes = Integer.parseInt(time_string);
+				int timeSeconds = timeMinutes*60;
 				
-				iO.mainExecution();
+				while(rerun.contains("update") || rerun.contains("accumulate")){
+					iO.mainExecution();
+					
+					try{
+						System.out.println("Next download in "+timeMinutes+" minutes...");
+						Thread.sleep(timeSeconds*1000);
+					}catch(Exception e1){
+						e1.printStackTrace();
+					}
+				}
+				
+				if(rerun.contains("no")){
+					iO.mainExecution();
+				}				
 				
 				//iS.showArrayData();
 			}

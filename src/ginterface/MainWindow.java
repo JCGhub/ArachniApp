@@ -7,6 +7,7 @@ import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
 import database.ConnectDB;
+import htmlparser.InfoOrganizator;
 import htmlparser.XMLReader;
 
 import javax.swing.JOptionPane;
@@ -111,9 +112,11 @@ public class MainWindow extends JFrame{
         				if(xR.validateFile()){
         					xR.readFile();
         					
-            				ParserWindow pW = new ParserWindow(xR, db);
-            				xR.prepareWebPortalParameters();
-            				boolean b = xR.prepareConfFileParameters();
+        					InfoOrganizator iO = xR.infoReady();
+            				ParserWindow pW = new ParserWindow(xR, iO, db);            				
+            				
+            				iO.prepareWebPortalParameters();
+            				boolean b = iO.prepareConfFileParameters();
             				
             				if(b){
             					JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.confFile_array.get(0)+"' already exists! Use another name.");
