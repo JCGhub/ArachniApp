@@ -82,23 +82,23 @@ public class MainWindow extends JFrame{
         scroll.setBounds(27, 42, 385, 156);
         contentPane.add(scroll);
         
-        JButton btnCreateTables = new JButton("Create tables");
+        /*JButton btnCreateTables = new JButton("Create tables");
 		btnCreateTables.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				db.createTables();
 			}
 		});
 		btnCreateTables.setBounds(27, 216, 112, 23);
-		contentPane.add(btnCreateTables);
+		contentPane.add(btnCreateTables);*/
 		
-		JButton btnDeleteTables = new JButton("Delete tables");
+		/*JButton btnDeleteTables = new JButton("Delete tables");
 		btnDeleteTables.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				db.deleteTables();
 			}
 		});
 		btnDeleteTables.setBounds(147, 216, 112, 23);
-		contentPane.add(btnDeleteTables);
+		contentPane.add(btnDeleteTables);*/
         
         JButton btnProcFile = new JButton("Process file");
         btnProcFile.addActionListener(new ActionListener() {
@@ -119,24 +119,27 @@ public class MainWindow extends JFrame{
             				boolean b = iO.prepareConfFileParameters();
             				
             				if(b){
-            					JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.confFile_array.get(0)+"' already exists! Use another name.");
+            					JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.confFile_array.get(0)+"' already exists! Use another name.",
+            		            	    "XML PROCESSING ERROR", JOptionPane.ERROR_MESSAGE);
             				}
             				else{
-            					JOptionPane.showMessageDialog(null, "SUCCESS!!");
+            					JOptionPane.showMessageDialog(null, "Xml file PROCESSED!!");
             					
             					pW.setVisible(true);
                 				dispose();
             				}
         				}
         				else{
-        					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!");
+        					JOptionPane.showMessageDialog(null, "Error: Xml file isn't valid to the schema!",
+        		            	    "XML PROCESSING ERROR", JOptionPane.ERROR_MESSAGE);
         				}
 					}catch(Exception ex){
 						ex.printStackTrace();
 					}
         		}
         		else{
-        			JOptionPane.showMessageDialog(null, "Error: Didn't load file or wrong file!");
+        			JOptionPane.showMessageDialog(null, "Error: Didn't load file or wrong file!",
+                    	    "XML PROCESSING ERROR", JOptionPane.ERROR_MESSAGE);
         		}
         	}
         });

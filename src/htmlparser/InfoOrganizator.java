@@ -89,7 +89,7 @@ public class InfoOrganizator{
 				}
 			}
 			
-			db.insertConfFileParameters(fileConfName, webPortalId, categoryId, dateMaker());
+			db.insertConfFileParameters(fileConfName, webPortalId, categoryId, dateMakerOnlyDay());
 		}catch(SQLException e){
 			e.printStackTrace();
 		}
@@ -213,10 +213,12 @@ public class InfoOrganizator{
 			db.deleteStringParamsByConfFile(confFileId);
 		}
 		
+		String date = dateMaker();
+		
 		for(int i = 0; i < attributes_array.size(); i++){
 			String attributeRule = attributes_array.get(i).get(1);
 			
-			String date = dateMaker();
+			//String date = dateMaker();
 			attributeValues_array = iD.downloadArray(url, attributeRule, null);
 				
 			for(int j = 0; j < attributeValues_array.size(); j++){
@@ -249,10 +251,12 @@ public class InfoOrganizator{
 		}
 		
 		for(int i = 0; i < multMainEntity_array.size(); i++){
+			String date = dateMaker();
+			
 			for(int j = 0; j < attributes_array.size(); j++){
 				String attributeRule = attributes_array.get(j).get(1);
 				
-				String date = dateMaker();
+				//String date = dateMaker();
 				attributeValues_array = iD.downloadArray(multMainEntity_array.get(i), attributeRule, null);
 					
 				for(int k = 0; k < attributeValues_array.size(); k++){
@@ -329,6 +333,26 @@ public class InfoOrganizator{
 	    String minutes = Integer.toString(cal.get(Calendar.MINUTE));
 	    
 	    date = year+"-"+month+"-"+day+" "+hour+":"+minutes+":00";
+	    
+	    return date;
+	}
+	
+	/**
+	 * Función que genera la fecha actual del sistema sin especificar la hora para asignarsela a la entrada del 
+	 * fichero de configuración.
+	 * 
+	 * @return Devuelve la fecha del sistema sin la hora.
+	 */
+	
+	public String dateMakerOnlyDay(){
+		String date;
+		Calendar cal = Calendar.getInstance();
+		
+		String day = Integer.toString(cal.get(Calendar.DATE));
+	    String month = Integer.toString((cal.get(Calendar.MONTH)+1));
+	    String year = Integer.toString(cal.get(Calendar.YEAR));
+	    
+	    date = year+"-"+month+"-"+day;
 	    
 	    return date;
 	}

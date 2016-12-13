@@ -63,7 +63,7 @@ public class ConnectDB{
             
             String webPortalQuery = "CREATE TABLE web_portal "
             		+ "(id_wp int(255) NOT NULL AUTO_INCREMENT, "
-            		+ "name varchar(255) NOT NULL, "
+            		+ "name varchar(100) NOT NULL, "
             		+ "PRIMARY KEY(id_wp))"
             		+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
             		
@@ -72,40 +72,73 @@ public class ConnectDB{
 					+ "name varchar(100) NOT NULL, "
 					+ "id_wp int(255) NOT NULL, "
 					+ "id_cat int(255) NOT NULL, "
-					+ "file_date datetime NOT NULL,"
+					+ "file_date date NOT NULL,"
 					+ "PRIMARY KEY(id_cf),"
-					+ "FOREIGN KEY(id_wp) REFERENCES web_portal(id_wp),"
-					+ "FOREIGN KEY(id_cat) REFERENCES category(id_cat))"
-					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-					
-			String intQuery = "CREATE TABLE integer_info "
-					+ "(id_inti int(255) NOT NULL AUTO_INCREMENT, "
-					+ "name varchar(200) NOT NULL, "
-					+ "value bigint(255) NOT NULL, "
-					+ "entity bigint(255) NOT NULL, "
-					+ "id_wp int(255) DEFAULT NULL, "
-					+ "id_cf int(255) NOT NULL, "
-					+ "id_cat int(255) NOT NULL, "
-					+ "PRIMARY KEY(id_inti),"
-					+ "FOREIGN KEY(id_wp) REFERENCES web_portal(id_wp),"
-					+ "FOREIGN KEY(id_cf) REFERENCES conf_file(id_cf),"
-					+ "FOREIGN KEY(id_cat) REFERENCES category(id_cat))"
+					+ "CONSTRAINT conf_file_ibfk_1 FOREIGN KEY(id_wp) REFERENCES web_portal(id_wp) ON DELETE restrict ON UPDATE restrict,"
+					+ "CONSTRAINT conf_file_ibfk_2 FOREIGN KEY(id_cat) REFERENCES category(id_cat) ON DELETE restrict ON UPDATE restrict)"
 					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 					
 			String strQuery = "CREATE TABLE string_info "
-					+ "(id_stri int(255) NOT NULL AUTO_INCREMENT, "
-					+ "name varchar(200) NOT NULL, "
+					+ "(id_str int(255) NOT NULL AUTO_INCREMENT, "
+					+ "name varchar(100) NOT NULL, "
 					+ "value text NOT NULL, "
 					+ "entity bigint(255) NOT NULL, "
 					+ "date datetime NOT NULL,"
-					+ "id_wp int(255) DEFAULT NULL, "
+					+ "id_wp int(255) NOT NULL, "
 					+ "id_cf int(255) NOT NULL, "
 					+ "id_cat int(255) NOT NULL, "
-					+ "PRIMARY KEY(id_stri),"
-					+ "FOREIGN KEY(id_wp) REFERENCES web_portal(id_wp),"
-					+ "FOREIGN KEY(id_cf) REFERENCES conf_file(id_cf),"
-					+ "FOREIGN KEY(id_cat) REFERENCES category(id_cat))"
+					+ "PRIMARY KEY(id_str),"
+					+ "CONSTRAINT string_info_ibfk_1 FOREIGN KEY(id_wp) REFERENCES web_portal(id_wp) ON DELETE restrict ON UPDATE restrict,"
+					+ "CONSTRAINT string_info_ibfk_2 FOREIGN KEY(id_cf) REFERENCES conf_file(id_cf) ON DELETE restrict ON UPDATE restrict,"
+					+ "CONSTRAINT string_info_ibfk_3 FOREIGN KEY(id_cat) REFERENCES category(id_cat) ON DELETE restrict ON UPDATE restrict)"
 					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+			
+			/*String graphicQuery = "CREATE TABLE graphic "
+            		+ "(id_graph int(255) NOT NULL AUTO_INCREMENT, "
+            		+ "name varchar(50) NOT NULL, "
+            		+ "PRIMARY KEY(id_graph))"
+            		+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+			
+			String graphicDefaultData = "INSERT INTO graphic (id_graph, name) VALUES "
+            		+ "(1, 'Text'), "
+            		+ "(2, 'Bars'), "
+            		+ "(3, 'Pie');";*/
+			
+			String roleQuery = "CREATE TABLE role "
+            		+ "(id_role int(255) NOT NULL AUTO_INCREMENT, "
+            		+ "name varchar(50) NOT NULL, "
+            		+ "PRIMARY KEY(id_role))"
+            		+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+			
+			String roleDefaultData = "INSERT INTO role (id_role, name) VALUES "
+            		+ "(1, 'Standard'), "
+            		+ "(2, 'Maker'), "
+            		+ "(3, 'Supermaker');";
+			
+			String userQuery = "CREATE TABLE user "
+					+ "(id_user int(255) NOT NULL AUTO_INCREMENT, "
+					+ "user_name varchar(100) NOT NULL, "
+					+ "password varchar(100) NOT NULL, "
+					+ "email varchar(100) NOT NULL, "
+					+ "name varchar(100) NOT NULL, "
+					+ "surname varchar(150) NOT NULL, "
+					+ "id_role int(255) NOT NULL, "
+					+ "PRIMARY KEY(id_user),"
+					+ "CONSTRAINT user_ibfk_1 FOREIGN KEY(id_role) REFERENCES role(id_role) ON DELETE restrict ON UPDATE restrict)"
+					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+			
+			String queriesQuery = "CREATE TABLE query "
+					+ "(id_query int(255) NOT NULL AUTO_INCREMENT, "
+					+ "name varchar(100) NOT NULL, "
+					+ "value text NOT NULL, "
+					+ "id_cf int(255) NOT NULL, "
+					+ "id_role int(255) NOT NULL, "
+					+ "id_user int(255) NOT NULL, "
+					+ "PRIMARY KEY(id_query),"
+					+ "CONSTRAINT query_ibfk_1 FOREIGN KEY(id_cf) REFERENCES conf_file(id_cf) ON DELETE restrict ON UPDATE restrict,"
+					+ "CONSTRAINT query_ibfk_2 FOREIGN KEY(id_role) REFERENCES role(id_role) ON DELETE restrict ON UPDATE restrict,"
+					+ "CONSTRAINT query_ibfk_3 FOREIGN KEY(id_user) REFERENCES user(id_user) ON DELETE restrict ON UPDATE restrict)"
+					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";			
             
             Statement st = Conn.createStatement();
             //st.executeUpdate(createDBQuery);
@@ -113,11 +146,18 @@ public class ConnectDB{
             st.executeUpdate(catDefaultData);
             st.executeUpdate(webPortalQuery);
             st.executeUpdate(confQuery);
-            st.executeUpdate(intQuery);
             st.executeUpdate(strQuery);
-            JOptionPane.showMessageDialog(null, "The tables have been created successfully!");
+            //st.executeUpdate(graphicQuery);
+            //st.executeUpdate(graphicDefaultData);
+            st.executeUpdate(roleQuery);
+            st.executeUpdate(roleDefaultData);
+            st.executeUpdate(userQuery);
+            st.executeUpdate(queriesQuery);
+            
+            JOptionPane.showMessageDialog(null, "The tables have been created SUCCESSFULLY!");
         } catch (SQLException ex) {
-        	JOptionPane.showMessageDialog(null, "ERROR: The tables haven't been created successfully!");
+        	JOptionPane.showMessageDialog(null, "ERROR: The tables haven't been created!",
+            	    "DATABASE ERROR", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -129,9 +169,11 @@ public class ConnectDB{
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "Configuration file params have been inserted successfully!");
+            
+            JOptionPane.showMessageDialog(null, "Conf. file parameters have been inserted SUCCESSFULLY!");
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted successfully!");
+            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted!",
+            	    "CONFIGURATION FILE ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -142,48 +184,28 @@ public class ConnectDB{
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "Configuration file params have been inserted successfully!");
+            JOptionPane.showMessageDialog(null, "Web portal parameters have been inserted SUCCESSFULLY!");
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted successfully!");
-        }
-    }
-    
-    public void insertCategoryParams(String name){
-    	try {
-            String Query = "INSERT INTO category (id_cat, name) "
-            		+ "VALUES (NULL, '"+name+"');";
-            
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "Category have been inserted successfully!");
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Category hasn't been inserted successfully!");
-        }
-    }
-    
-    public void insertIntegerParams(String name, int value, int entity, int web_portal, int conf_file, int category){
-    	try {
-            String Query = "INSERT INTO integer_info (id_inti, name, value, entity, id_wp, id_cf, id_cat) "
-            		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+web_portal+"', '"+conf_file+"', '"+category+"');";
-            
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "Integer information have been inserted successfully!");
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Integer information haven't been inserted successfully!");
+            JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted!",
+            	    "WEB PORTAL ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
     
     public void insertStringParams(String name, String value, int entity, String date, int web_portal, int conf_file, int category){
     	try {
-            String Query = "INSERT INTO string_info (id_stri, name, value, entity, date, id_wp, id_cf, id_cat) "
+            String Query = "INSERT INTO string_info (id_str, name, value, entity, date, id_wp, id_cf, id_cat) "
             		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+date+"', '"+web_portal+"', '"+conf_file+"', '"+category+"');";
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "String information have been inserted successfully!");
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: String information haven't been inserted successfully!");
+        	Thread t = new Thread(new Runnable(){
+                public void run(){
+                    JOptionPane.showMessageDialog(null, "Warning: Information haven't been inserted!",
+                    	    "DATA WARNING", JOptionPane.WARNING_MESSAGE);
+                }
+            });
+        	t.start();
         }
     }
     
@@ -193,9 +215,9 @@ public class ConnectDB{
             
             Statement st = Conn.createStatement();
             st.executeUpdate(Query);
-            //JOptionPane.showMessageDialog(null, "String information have been inserted successfully!");
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: String information haven't been inserted successfully!");
+            JOptionPane.showMessageDialog(null, "ERROR: Information haven't been deleted!",
+            	    "DATA ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -209,7 +231,8 @@ public class ConnectDB{
             rSet = st.executeQuery(Query);
  
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Getting information has failed!");
+            JOptionPane.showMessageDialog(null, "ERROR: Getting conf. file name has failed!",
+            	    "CONFIGURATION FILE ERROR", JOptionPane.ERROR_MESSAGE);
         }
         
         return rSet;
@@ -225,7 +248,8 @@ public class ConnectDB{
             rSet = st.executeQuery(Query);
  
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Getting information has failed!");
+            JOptionPane.showMessageDialog(null, "ERROR: Getting web portal has failed!",
+            	    "WEB PORTAL ERROR", JOptionPane.ERROR_MESSAGE);
         }
         
         return rSet;
@@ -241,7 +265,8 @@ public class ConnectDB{
             rSet = st.executeQuery(Query);
  
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Getting information has failed!");
+            JOptionPane.showMessageDialog(null, "ERROR: Getting category has failed!",
+            	    "CATEGORY ERROR", JOptionPane.ERROR_MESSAGE);
         }
         
         return rSet;
@@ -257,7 +282,8 @@ public class ConnectDB{
             rSet = st.executeQuery(Query);
  
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Getting information has failed!");
+            JOptionPane.showMessageDialog(null, "ERROR: Getting conf. file identificator has failed!",
+            	    "CONFIGURATION FILE ERROR", JOptionPane.ERROR_MESSAGE);
         }
         
         return rSet;
@@ -273,7 +299,8 @@ public class ConnectDB{
             rSet = st.executeQuery(Query);
  
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Getting information has failed!");
+            JOptionPane.showMessageDialog(null, "ERROR: Getting web portal identificator has failed!",
+            	    "WEB PORTAL ERROR", JOptionPane.ERROR_MESSAGE);
         }
         
         return rSet;
@@ -289,13 +316,14 @@ public class ConnectDB{
             rSet = st.executeQuery(Query);
  
         } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(null, "ERROR: Getting information has failed!");
+            JOptionPane.showMessageDialog(null, "ERROR: Getting category identificator has failed!",
+            	    "CATEGORY ERROR", JOptionPane.ERROR_MESSAGE);
         }
         
         return rSet;
     }
     
-    public void deleteTables() {
+    /*public void deleteTables() {
         try {
             String Query = "DROP TABLE category, conf_file, integer_info, string_info, web_portal";
             
@@ -306,5 +334,5 @@ public class ConnectDB{
         	JOptionPane.showMessageDialog(null, "ERROR: The tables haven't been deleted successfully!");
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }*/
 }

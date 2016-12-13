@@ -94,10 +94,11 @@ public class HTMLParser{
 			                
 			                for (int i = 0; i < nodes.getLength(); i++) {
 			                	String str = nodes.item(i).getTextContent();
-			                    String strCod = StringEscapeUtils.unescapeHtml4(str);
+			                    String strCod = StringEscapeUtils.unescapeHtml4(str);			                    
+			                    String strFixed = strCod.replace("\n", "");
 			                    
 			                    //System.out.println("Current node value: "+strCod);                    
-			                    results.add(strCod);
+			                    results.add(strFixed);
 			                }
 			               
 			                return results;
