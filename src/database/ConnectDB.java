@@ -19,10 +19,10 @@ public class ConnectDB{
             Conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/"+db_name, user, pass);
             System.out.println("Successful connection with the server!");
         } catch (ClassNotFoundException ex) {
-        	System.out.println("ERROR: Unsuccessful connection with the server!");
+        	System.out.println("ERROR 1: Unsuccessful connection with the server! "+ex);
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException ex) {
-        	System.out.println("ERROR: Unsuccessful connection with the server!");
+        	System.out.println("ERROR 2: Unsuccessful connection with the server! "+ex);
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -206,6 +206,22 @@ public class ConnectDB{
                 }
             });
         	t.start();
+        }
+    }
+    
+    public void insertDefaultQuery(String name, String query, int confFileId, int roleId, int userId){
+    	System.out.println(name+", "+query+", "+confFileId+", "+roleId+", "+userId);
+    	try {
+            String Query = "INSERT INTO query (id_query, name, value, id_cf, id_role, id_user) "
+            		+ "VALUES (NULL, '"+name+"', '"+query+"', '"+confFileId+"', '"+roleId+"', '"+userId+"');";
+            
+            System.out.println("\n"+Query);
+            
+            Statement st = Conn.createStatement();
+            st.executeUpdate(Query);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "ERROR: Default query haven't been inserted!",
+                    "DATA ERROR", JOptionPane.ERROR_MESSAGE);
         }
     }
     

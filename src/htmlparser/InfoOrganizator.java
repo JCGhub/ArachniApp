@@ -229,6 +229,12 @@ public class InfoOrganizator{
 				}
 			}
 		}
+		
+		//Hacer comprobación de si la consulta por defecto que se va a crear existe, en caso afirmativo, 
+		//no se vuelve a crear. Si no existe, se crea por primera y única vez (casos de acumular y actualizar)
+		
+		String query = "SELECT name, value, entity, date FROM string_info WHERE id_cf = \""+confFileId+"\"";
+		db.insertDefaultQuery("Default query", query, confFileId, 1, 1);
 	}
 	
 	/**
@@ -268,6 +274,12 @@ public class InfoOrganizator{
 				}
 			}
 		}
+		
+		//Hacer comprobación de si la consulta por defecto que se va a crear existe, en caso afirmativo, 
+		//no se vuelve a crear. Si no existe, se crea por primera y única vez (casos de acumular y actualizar)
+		
+		String query = "SELECT name, value, entity, date FROM string_info WHERE id_cf = \""+confFileId+"\"";
+		db.insertDefaultQuery("Default query", query, confFileId, 1, 1);
 	}
 	
 	/**
