@@ -19,7 +19,6 @@ import database.ConnectDB;
  * 'nextPage_array'			Array que almacena los parámetros y reglas de la función de página siguiente.
  * 'attributes_array'		Array que almacena todos los atributos asociados a cada entidad, que a su vez almacena los parámetros de cada atributo.
  * 'url'					Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
- * 'db'						Instancia de ConnectDB para la gestión de funciones de tratamiento de la base de datos.
  * 'iD'						Instancia de InfoDownloader para el uso de las funciones de dicha clase.
  */
 
@@ -32,8 +31,9 @@ public class InfoOrganizator{
 	ArrayList<String> nextPage_array = new ArrayList<String>();
 	ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
 	String url;
-	ConnectDB db;
 	InfoDownloader iD = new InfoDownloader();
+	public static InfoOrganizator iO;
+	int c;
 	
 	/**
 	 * Constructor de la clase InfoOrganizator.
@@ -46,82 +46,25 @@ public class InfoOrganizator{
 	 * @param db, Instancia de la clase ConnectDB.
 	 */
 	
-	public InfoOrganizator(String url, ArrayList<String> confFile_array, ArrayList<String> mainEntity_array, ArrayList<String> nextPage_array, ArrayList<ArrayList<String>> attributes_array, ConnectDB db){
+	private InfoOrganizator(String url, ArrayList<String> confFile_array, ArrayList<String> mainEntity_array, ArrayList<String> nextPage_array, ArrayList<ArrayList<String>> attributes_array){
 		this.url = url;
 		this.confFile_array = confFile_array;
 		this.mainEntity_array = mainEntity_array;
 		this.nextPage_array = nextPage_array;
 		this.attributes_array = attributes_array;
-		this.db = db;
 	}
 	
-	/**
-	 * Función creada para la inserción en la base de datos de los parámetros que corresponden al fichero de configuración.
-	 * Es llamada desde MainWindow.
-	 * 
-	 * @return Devuelve b, que será true si el nombre del fichero ya existe ó false en caso contrario y por tanto se dispone a introducirlo en la base de datos.
-	 */
-	
-	public boolean prepareConfFileParameters(){
-		String fileConfName = confFile_array.get(0);
-		String webPortal = confFile_array.get(1);
-		String category = confFile_array.get(2);
-		boolean b = false;
-		
-		try{
-			ResultSet rS = db.getNameConfFile();
-			int webPortalId = 0, categoryId = 0;
-			
-			ResultSet webPortalRS = db.getWebPortalId(webPortal);
-			ResultSet categoryRS = db.getCategoryId(category);
-			
-			while(webPortalRS.next()){
-				webPortalId = webPortalRS.getInt(1);
-			}
-			
-			while(categoryRS.next()){
-				categoryId = categoryRS.getInt(1);
-			}
-		    
-		    while(rS.next()){			
-				if(rS.getString("name").equals(fileConfName)){
-					return true;
-				}
-			}
-			
-			db.insertConfFileParameters(fileConfName, webPortalId, categoryId, dateMakerOnlyDay());
-		}catch(SQLException e){
-			e.printStackTrace();
-		}
-		
-		return b;
-	}
-	
-	/**
-	 * Función creada para la inserción, en caso de que aun no exista, del parámetro web_portal del fichero de configuración en la base de datos.
-	 * 
-	 */
-	
-	public void prepareWebPortalParameters(){
-		String webPortal = confFile_array.get(1);
-		boolean b = false;
-		
-		try{
-			ResultSet rS = db.getWebPortal();			
-			
-			while(rS.next()){			
-				if(rS.getString("name").equals(webPortal)){
-					b = true;
-				}
-			}
-			
-			if(!b){
-				db.insertWebPortalParameters(webPortal);
-			}
-		}catch(SQLException e){
-			e.printStackTrace();
-		}
-	}
+	public static InfoOrganizator getInstance(String url, ArrayList<String> confFile_array, ArrayList<String> mainEntity_array, ArrayList<String> nextPage_array, ArrayList<ArrayList<String>> attributes_array){
+        if(iO == null){
+        	iO = new InfoOrganizator(url, confFile_array, mainEntity_array, nextPage_array, attributes_array);
+        	//System.out.println("First instance of InfoOrganizator!");
+        }
+        else{
+            System.out.println("You can't create another instance of InfoOrganizator!");
+        }
+        
+        return iO;
+    }
 	
 	/**
 	 * Función que dispone el inicio de la ejecución del programa a través de los datos introducidos en el fichero xml.
@@ -134,6 +77,7 @@ public class InfoOrganizator{
 		String urlType = mainEntity_array.get(1);
 		String mainEntityXpath;
 		String urlRoot = mainEntity_array.get(3);
+		c = 0;
 			
 		if(mainEntitySize.contains("simple")){
 			// No debe ejecutarse ninguna función de botón siguiente si solo se evalua una entidad.			
@@ -210,7 +154,7 @@ public class InfoOrganizator{
 		}
 		
 		if(rerun.contains("update")){
-			db.deleteStringParamsByConfFile(confFileId);
+			ConnectDB.db.deleteStringParamsByConfFile(confFileId);
 		}
 		
 		String date = dateMaker();
@@ -230,11 +174,23 @@ public class InfoOrganizator{
 			}
 		}
 		
-		//Hacer comprobación de si la consulta por defecto que se va a crear existe, en caso afirmativo, 
-		//no se vuelve a crear. Si no existe, se crea por primera y única vez (casos de acumular y actualizar)
-		
-		String query = "SELECT name, value, entity, date FROM string_info WHERE id_cf = \""+confFileId+"\"";
-		db.insertDefaultQuery("Default query", query, confFileId, 1, 1);
+		ResultSet rS = ConnectDB.db.existsDefaultQuery(confFileId);
+    boolean b = true;
+    
+    try {
+      while(rS.next()){     
+        if(rS.getString("name").equals("Default query")){
+          b = false;
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    
+    if(b){
+      String query = "SELECT name, value, entity, date FROM string_info WHERE id_cf = \""+confFileId+"\"";
+      ConnectDB.db.insertDefaultQuery("Default query", query, confFileId, 1, 1);
+    }
 	}
 	
 	/**
@@ -253,7 +209,7 @@ public class InfoOrganizator{
 		}
 		
 		if(rerun.contains("update")){
-			db.deleteStringParamsByConfFile(confFileId);
+			ConnectDB.db.deleteStringParamsByConfFile(confFileId);
 		}
 		
 		for(int i = 0; i < multMainEntity_array.size(); i++){
@@ -275,11 +231,23 @@ public class InfoOrganizator{
 			}
 		}
 		
-		//Hacer comprobación de si la consulta por defecto que se va a crear existe, en caso afirmativo, 
-		//no se vuelve a crear. Si no existe, se crea por primera y única vez (casos de acumular y actualizar)
+		ResultSet rS = ConnectDB.db.existsDefaultQuery(confFileId);
+		boolean b = true;
 		
-		String query = "SELECT name, value, entity, date FROM string_info WHERE id_cf = \""+confFileId+"\"";
-		db.insertDefaultQuery("Default query", query, confFileId, 1, 1);
+		try {
+      while(rS.next()){     
+        if(rS.getString("name").equals("Default query")){
+          b = false;
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+		
+		if(b){
+		  String query = "SELECT name, value, entity, date FROM string_info WHERE id_cf = \""+confFileId+"\"";
+	    ConnectDB.db.insertDefaultQuery("Default query", query, confFileId, 1, 1);
+		}
 	}
 	
 	/**
@@ -293,9 +261,10 @@ public class InfoOrganizator{
 	public void insertValuesDB(String value, int index, String urlEntity, String date) throws SQLException{
 		int numEntity = urlEntity.hashCode();
 		int confFileId = getConfFileId(), webPortalId = 0, categoryId = 0;
-		ResultSet webPortalRS = db.getWebPortalId(confFile_array.get(1));
-		ResultSet categoryRS = db.getCategoryId(confFile_array.get(2));
+		ResultSet webPortalRS = ConnectDB.db.getWebPortalId(confFile_array.get(1));
+		ResultSet categoryRS = ConnectDB.db.getCategoryId(confFile_array.get(2));
 		String nameAttribute = attributes_array.get(index).get(0);
+		c++;
 		
 		while(webPortalRS.next()){
 			webPortalId = webPortalRS.getInt(1);
@@ -305,8 +274,12 @@ public class InfoOrganizator{
 			categoryId = categoryRS.getInt(1);
 		}
 		
-		db.insertStringParams(nameAttribute, value, numEntity, date, webPortalId, confFileId, categoryId);
+		ConnectDB.db.insertStringParams(nameAttribute, value, numEntity, date, webPortalId, confFileId, categoryId);
 	}
+	
+	 public int countNodes(){
+	    return c;
+	 }
 	
 	/**
 	 * Función que devuelve el Id del fichero de configuración asignado en la base de datos a partir de su nombre.
@@ -318,7 +291,7 @@ public class InfoOrganizator{
 	public int getConfFileId() throws SQLException{
 		int confFileId = 0;
 				
-		ResultSet confFileRS = db.getConfFileId(confFile_array.get(0));
+		ResultSet confFileRS = ConnectDB.db.getConfFileId(confFile_array.get(0));
 		
 		while(confFileRS.next()){
 			confFileId = confFileRS.getInt(1);
@@ -345,26 +318,6 @@ public class InfoOrganizator{
 	    String minutes = Integer.toString(cal.get(Calendar.MINUTE));
 	    
 	    date = year+"-"+month+"-"+day+" "+hour+":"+minutes+":00";
-	    
-	    return date;
-	}
-	
-	/**
-	 * Función que genera la fecha actual del sistema sin especificar la hora para asignarsela a la entrada del 
-	 * fichero de configuración.
-	 * 
-	 * @return Devuelve la fecha del sistema sin la hora.
-	 */
-	
-	public String dateMakerOnlyDay(){
-		String date;
-		Calendar cal = Calendar.getInstance();
-		
-		String day = Integer.toString(cal.get(Calendar.DATE));
-	    String month = Integer.toString((cal.get(Calendar.MONTH)+1));
-	    String year = Integer.toString(cal.get(Calendar.YEAR));
-	    
-	    date = year+"-"+month+"-"+day;
 	    
 	    return date;
 	}

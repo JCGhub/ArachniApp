@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 
 public class InfoDownloader{
 	
+	HTMLParser hP;
+	
 	/**
 	 * Constructor vacío de la clase InfoDownloader para el uso de las funciones de descarga sin necesidad de inicializar
 	 * ningún valor. Será el encargado de las llamadas a función de la clase HTMLParser.
@@ -36,7 +38,7 @@ public class InfoDownloader{
 	public ArrayList<String> downloadArray(String url, String xPath, String flag){
 		ArrayList<String> values_array = new ArrayList<String>();
 		
-		HTMLParser hP = new HTMLParser(url, xPath);
+		hP = new HTMLParser(url, xPath);
 		values_array = hP.downloadAsArray(flag);
 		
 		return values_array;
@@ -53,7 +55,7 @@ public class InfoDownloader{
 	public String downloadString(String url, String xPath){
 		String value;
 		
-		HTMLParser hP = new HTMLParser(url, xPath);
+		hP = new HTMLParser(url, xPath);
 		value = hP.downloadAsString();
 		
 		return value;

@@ -11,9 +11,39 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
 public class ConnectDB{
-	private static Connection Conn;
+	Connection Conn;
+    Statement statement;
+    public static ConnectDB db;
+	
+	private ConnectDB(){
+		String url= "jdbc:mysql://127.0.0.1/";
+        String dbName = "arachniappdb";
+        String driver = "com.mysql.jdbc.Driver";
+        String userName = "root";
+        String password = "";
+        
+        try{
+            Class.forName(driver).newInstance();
+            this.Conn = (Connection)DriverManager.getConnection(url+dbName,userName,password);
+        }
+        catch(Exception sqle){
+            sqle.printStackTrace();
+        }
+	}
+	
+	public static ConnectDB getInstance(){
+        if(db == null){
+        	db = new ConnectDB();
+        	System.out.println("Successful connection with the server!");
+        }
+        else{
+            System.out.println("You can't create another instance of ConnectDB!");
+        }
+        
+        return db;
+    }
 	 
-    public void MySQLConnection(String user, String pass, String db_name){
+    /*public void MySQLConnection(){
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/"+db_name, user, pass);
@@ -25,7 +55,7 @@ public class ConnectDB{
         	System.out.println("ERROR 2: Unsuccessful connection with the server! "+ex);
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }*/
  
     public void closeConnection() {
         try {
@@ -37,11 +67,8 @@ public class ConnectDB{
         }
     }
  
-    public void createTables() {
-        try {
-            /*String createDBQuery = "CREATE DATABASE IF NOT EXISTS " + name + " "
-            		+ "DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;\n";*/
-            		
+    /*public void createTables() {
+        try {            		
             String catQuery = "CREATE TABLE category "
             		+ "(id_cat int(255) NOT NULL AUTO_INCREMENT, "
             		+ "name varchar(50) NOT NULL, "
@@ -93,17 +120,6 @@ public class ConnectDB{
 					+ "CONSTRAINT string_info_ibfk_3 FOREIGN KEY(id_cat) REFERENCES category(id_cat) ON DELETE restrict ON UPDATE restrict)"
 					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 			
-			/*String graphicQuery = "CREATE TABLE graphic "
-            		+ "(id_graph int(255) NOT NULL AUTO_INCREMENT, "
-            		+ "name varchar(50) NOT NULL, "
-            		+ "PRIMARY KEY(id_graph))"
-            		+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-			
-			String graphicDefaultData = "INSERT INTO graphic (id_graph, name) VALUES "
-            		+ "(1, 'Text'), "
-            		+ "(2, 'Bars'), "
-            		+ "(3, 'Pie');";*/
-			
 			String roleQuery = "CREATE TABLE role "
             		+ "(id_role int(255) NOT NULL AUTO_INCREMENT, "
             		+ "name varchar(50) NOT NULL, "
@@ -140,19 +156,19 @@ public class ConnectDB{
 					+ "CONSTRAINT query_ibfk_3 FOREIGN KEY(id_user) REFERENCES user(id_user) ON DELETE restrict ON UPDATE restrict)"
 					+ "ENGINE=InnoDB DEFAULT CHARSET=utf8;";			
             
-            Statement st = Conn.createStatement();
-            //st.executeUpdate(createDBQuery);
-            st.executeUpdate(catQuery);
-            st.executeUpdate(catDefaultData);
-            st.executeUpdate(webPortalQuery);
-            st.executeUpdate(confQuery);
-            st.executeUpdate(strQuery);
-            //st.executeUpdate(graphicQuery);
-            //st.executeUpdate(graphicDefaultData);
-            st.executeUpdate(roleQuery);
-            st.executeUpdate(roleDefaultData);
-            st.executeUpdate(userQuery);
-            st.executeUpdate(queriesQuery);
+            statement = db.Conn.createStatement();
+            //statement.executeUpdate(createDBQuery);
+            statement.executeUpdate(catQuery);
+            statement.executeUpdate(catDefaultData);
+            statement.executeUpdate(webPortalQuery);
+            statement.executeUpdate(confQuery);
+            statement.executeUpdate(strQuery);
+            //statement.executeUpdate(graphicQuery);
+            //statement.executeUpdate(graphicDefaultData);
+            statement.executeUpdate(roleQuery);
+            statement.executeUpdate(roleDefaultData);
+            statement.executeUpdate(userQuery);
+            statement.executeUpdate(queriesQuery);
             
             JOptionPane.showMessageDialog(null, "The tables have been created SUCCESSFULLY!");
         } catch (SQLException ex) {
@@ -160,15 +176,15 @@ public class ConnectDB{
             	    "DATABASE ERROR", JOptionPane.ERROR_MESSAGE);
             Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }*/
     
     public void insertConfFileParameters(String name, int web_portal, int category, String date){
     	try {
             String Query = "INSERT INTO conf_file (id_cf, name, id_wp, id_cat, file_date) "
             		+ "VALUES (NULL, '"+name+"', '"+web_portal+"', '"+category+"', '"+date+"');";
             
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
+            statement = db.Conn.createStatement();
+            statement.executeUpdate(Query);
             
             JOptionPane.showMessageDialog(null, "Conf. file parameters have been inserted SUCCESSFULLY!");
         } catch (SQLException ex) {
@@ -182,8 +198,8 @@ public class ConnectDB{
             String Query = "INSERT INTO web_portal (id_wp, name) "
             		+ "VALUES (NULL, '"+name+"');";
             
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
+            statement = db.Conn.createStatement();
+            statement.executeUpdate(Query);
             JOptionPane.showMessageDialog(null, "Web portal parameters have been inserted SUCCESSFULLY!");
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Configuration file params haven't been inserted!",
@@ -196,8 +212,8 @@ public class ConnectDB{
             String Query = "INSERT INTO string_info (id_str, name, value, entity, date, id_wp, id_cf, id_cat) "
             		+ "VALUES (NULL, '"+name+"', '"+value+"', '"+entity+"', '"+date+"', '"+web_portal+"', '"+conf_file+"', '"+category+"');";
             
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
+            statement = db.Conn.createStatement();
+            statement.executeUpdate(Query);
         } catch (SQLException ex) {
         	Thread t = new Thread(new Runnable(){
                 public void run(){
@@ -210,19 +226,36 @@ public class ConnectDB{
     }
     
     public void insertDefaultQuery(String name, String query, int confFileId, int roleId, int userId){
-    	System.out.println(name+", "+query+", "+confFileId+", "+roleId+", "+userId);
+    	//System.out.println(name+", "+query+", "+confFileId+", "+roleId+", "+userId);
     	try {
             String Query = "INSERT INTO query (id_query, name, value, id_cf, id_role, id_user) "
             		+ "VALUES (NULL, '"+name+"', '"+query+"', '"+confFileId+"', '"+roleId+"', '"+userId+"');";
             
-            System.out.println("\n"+Query);
+            //System.out.println("\n"+Query);
             
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
+            statement = db.Conn.createStatement();
+            statement.executeUpdate(Query);
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Default query haven't been inserted!",
                     "DATA ERROR", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    public ResultSet existsDefaultQuery(int id_cf){
+      ResultSet rSet = null;
+      
+      try {
+          String Query = "SELECT name FROM query WHERE id_cf='"+id_cf+"'";
+          
+          statement = db.Conn.createStatement();
+          rSet = statement.executeQuery(Query);
+
+      } catch (SQLException ex) {
+          JOptionPane.showMessageDialog(null, "ERROR: Getting conf. file name has failed!",
+                "CONFIGURATION FILE ERROR", JOptionPane.ERROR_MESSAGE);
+      }
+      
+      return rSet;
     }
     
     public void deleteStringParamsByConfFile(int confFileId){
@@ -243,8 +276,8 @@ public class ConnectDB{
         try {
             String Query = "SELECT name FROM conf_file";
             
-            Statement st = Conn.createStatement();
-            rSet = st.executeQuery(Query);
+            statement = db.Conn.createStatement();
+            rSet = statement.executeQuery(Query);
  
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Getting conf. file name has failed!",
@@ -260,8 +293,8 @@ public class ConnectDB{
         try {
             String Query = "SELECT name FROM web_portal";
             
-            Statement st = Conn.createStatement();
-            rSet = st.executeQuery(Query);
+            statement = db.Conn.createStatement();
+            rSet = statement.executeQuery(Query);
  
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Getting web portal has failed!",
@@ -277,8 +310,8 @@ public class ConnectDB{
         try {
             String Query = "SELECT name FROM category";
             
-            Statement st = Conn.createStatement();
-            rSet = st.executeQuery(Query);
+            statement = db.Conn.createStatement();
+            rSet = statement.executeQuery(Query);
  
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Getting category has failed!",
@@ -294,8 +327,8 @@ public class ConnectDB{
         try {
             String Query = "SELECT id_cf FROM conf_file WHERE name='"+name+"'";
             
-            Statement st = Conn.createStatement();
-            rSet = st.executeQuery(Query);
+            statement = db.Conn.createStatement();
+            rSet = statement.executeQuery(Query);
  
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Getting conf. file identificator has failed!",
@@ -311,8 +344,8 @@ public class ConnectDB{
         try {
             String Query = "SELECT id_wp FROM web_portal WHERE name='"+name+"'";
             
-            Statement st = Conn.createStatement();
-            rSet = st.executeQuery(Query);
+            statement = db.Conn.createStatement();
+            rSet = statement.executeQuery(Query);
  
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Getting web portal identificator has failed!",
@@ -328,8 +361,8 @@ public class ConnectDB{
         try {
             String Query = "SELECT id_cat FROM category WHERE name='"+cat+"'";
             
-            Statement st = Conn.createStatement();
-            rSet = st.executeQuery(Query);
+            statement = db.Conn.createStatement();
+            rSet = statement.executeQuery(Query);
  
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "ERROR: Getting category identificator has failed!",
@@ -338,17 +371,4 @@ public class ConnectDB{
         
         return rSet;
     }
-    
-    /*public void deleteTables() {
-        try {
-            String Query = "DROP TABLE category, conf_file, integer_info, string_info, web_portal";
-            
-            Statement st = Conn.createStatement();
-            st.executeUpdate(Query);
-            JOptionPane.showMessageDialog(null, "The tables have been deleted successfully!");
-        } catch (SQLException ex) {
-        	JOptionPane.showMessageDialog(null, "ERROR: The tables haven't been deleted successfully!");
-            Logger.getLogger(ConnectDB.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }*/
 }

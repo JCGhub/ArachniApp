@@ -23,7 +23,6 @@ import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import htmlparser.iLogger;
 import htmlparser.KeyValue;
@@ -44,6 +43,7 @@ public class HTMLParser{
 	boolean https = false;
 	int connectTimeout = 10000;
 	boolean encode = true;
+	DataFixer dF = new DataFixer();
     
 
 	public HTMLParser(String URL) {
@@ -94,10 +94,9 @@ public class HTMLParser{
 			                
 			                for (int i = 0; i < nodes.getLength(); i++) {
 			                	String str = nodes.item(i).getTextContent();
-			                    String strCod = StringEscapeUtils.unescapeHtml4(str);			                    
-			                    String strFixed = strCod.replace("\n", "");
-			                    
-			                    //System.out.println("Current node value: "+strCod);                    
+			                	
+			                	String strFixed = dF.fix(str);
+			                                       
 			                    results.add(strFixed);
 			                }
 			               
@@ -117,46 +116,12 @@ public class HTMLParser{
 			}catch(Exception e1){
 				e1.printStackTrace();
 			}
-		}
-			
-			/*
-            try{
-                TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
-                doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
-                
-                XPath xpath = XPathFactory.newInstance().newXPath();
-                
-                NodeList nodes = (NodeList) xpath.evaluate(xPath, getDoc(), XPathConstants.NODESET);
-                
-                System.out.println("Array Search results: "+nodes.getLength()+" nodes.");
-                
-                for (int i = 0; i < nodes.getLength(); i++) {
-                	String str = nodes.item(i).getTextContent();
-                    String strCod = StringEscapeUtils.unescapeHtml4(str);
-                    
-                    //System.out.println("Current node value: "+strCod);                    
-                    results.add(strCod);
-                }
-               
-                return results;
-            } catch (XPathExpressionException e) {
-                    e.printStackTrace();
-                    logger.log(e.getMessage());
-            } catch (ParserConfigurationException e) {
-                    e.printStackTrace();
-                    logger.log(e.getMessage());
-            } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.log(e.getMessage());
-            }      
-        }
-        */
-			
+		}			
         return null;     
     }
 	
 	public String downloadAsString(){
-		String result, resultCod = "";
+		String result, resultFixed = "";
 		
 		if(!(xPath.isEmpty())){
 			//System.out.println("Url: "+Url+", xPath: "+xPath);            
@@ -168,15 +133,16 @@ public class HTMLParser{
 
                 NodeList nodes = (NodeList) xpath.evaluate(xPath, getDoc(), XPathConstants.NODESET);
                 
-                System.out.println("String Search results: "+nodes.getLength()+" nodes.");
+                //System.out.println("String Search results: "+nodes.getLength()+" nodes.");
                 
                 for(int i = 0; i < nodes.getLength(); i++) {
                     result = nodes.item(i).getTextContent();
-                    resultCod = StringEscapeUtils.unescapeHtml4(result);
+                    
+                    resultFixed = dF.fix(result);
                 }
                 
                 //System.out.println("Current node value: "+resultCod);                
-                return resultCod;
+                return resultFixed;
             } catch (XPathExpressionException e) {
                     e.printStackTrace();
                     logger.log(e.getMessage());

@@ -26,10 +26,13 @@ public class MainWindow extends JFrame{
 	private JTextField textField;
 	private JTextArea textArea;
 	JFileChooser fC = new JFileChooser();
-	File file;
-	ConnectDB db = new ConnectDB();
+	File file;	
+	ParserWindow pW;
+	XMLReader xR;
 
 	public MainWindow(){
+		ConnectDB.getInstance();
+		
 		setTitle("ArachniApp · Main menu");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
@@ -37,8 +40,6 @@ public class MainWindow extends JFrame{
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(null);
-		
-		db.MySQLConnection("root", "", "arachniappdb");
 		
 		textField = new JTextField();
 		textField.setBounds(27, 11, 200, 20);
@@ -82,24 +83,6 @@ public class MainWindow extends JFrame{
         scroll.setBounds(27, 42, 385, 156);
         contentPane.add(scroll);
         
-        /*JButton btnCreateTables = new JButton("Create tables");
-		btnCreateTables.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				db.createTables();
-			}
-		});
-		btnCreateTables.setBounds(27, 216, 112, 23);
-		contentPane.add(btnCreateTables);*/
-		
-		/*JButton btnDeleteTables = new JButton("Delete tables");
-		btnDeleteTables.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				db.deleteTables();
-			}
-		});
-		btnDeleteTables.setBounds(147, 216, 112, 23);
-		contentPane.add(btnDeleteTables);*/
-        
         JButton btnProcFile = new JButton("Process file");
         btnProcFile.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent e) {
@@ -107,16 +90,15 @@ public class MainWindow extends JFrame{
         			try{
         				String xml = textField.getText();
         				
-        				XMLReader xR = new XMLReader(xml, db);
+        				xR = new XMLReader(xml);
         				
         				if(xR.validateFile()){
         					xR.readFile();
         					
-        					InfoOrganizator iO = xR.infoReady();
-            				ParserWindow pW = new ParserWindow(xR, iO, db);            				
+            				pW = new ParserWindow();       				
             				
-            				iO.prepareWebPortalParameters();
-            				boolean b = iO.prepareConfFileParameters();
+            				xR.prepareWebPortalParameters();
+            				boolean b = xR.prepareConfFileParameters();
             				
             				if(b){
             					JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.confFile_array.get(0)+"' already exists! Use another name.",
@@ -149,7 +131,7 @@ public class MainWindow extends JFrame{
         JButton btnExit = new JButton("Exit");
 		btnExit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				db.closeConnection();
+				ConnectDB.db.closeConnection();
 				System.exit(0);
 			}
 		});

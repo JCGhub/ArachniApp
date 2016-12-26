@@ -37,7 +37,6 @@ import database.ConnectDB;
  * 'xmlFile'			Variable de tipo Document generada para la gestión de los nodos del fichero xml.
  * 'xml'				Ruta en la que se sitúa el fichero xml que se va a leer.
  * 'url'				Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
- * 'db'					Instancia de ConnectDB para la gestión de funciones de tratamiento de la base de datos.
  */
 
 public class XMLReader{
@@ -49,7 +48,6 @@ public class XMLReader{
 	ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
 	Document xmlFile;
 	String xml, url;
-	ConnectDB db;
 	
 	/**
 	 * Constructor de la clase XMLReader.
@@ -60,9 +58,8 @@ public class XMLReader{
 	 * @throws Exception
 	 */
 	
-	public XMLReader(String xml, ConnectDB db) throws Exception{
+	public XMLReader(String xml) throws Exception{
 		this.xml = xml;
-		this.db = db;
 		
 		DocumentBuilderFactory dBF = DocumentBuilderFactory.newInstance();
 		dBF.setValidating(false);
@@ -223,6 +220,96 @@ public class XMLReader{
 				attributes_array.add(attributes_currArray);
 	    	}
     	}
+    	
+    	infoReady();
+	}
+	
+	/**
+	 * Función creada para la inserción en la base de datos de los parámetros que corresponden al fichero de configuración.
+	 * Es llamada desde MainWindow.
+	 * 
+	 * @return Devuelve b, que será true si el nombre del fichero ya existe ó false en caso contrario y por tanto se dispone a introducirlo en la base de datos.
+	 */
+	
+	public boolean prepareConfFileParameters(){
+		String fileConfName = confFile_array.get(0);
+		String webPortal = confFile_array.get(1);
+		String category = confFile_array.get(2);
+		boolean b = false;
+		
+		try{
+			ResultSet rS = ConnectDB.db.getNameConfFile();
+			int webPortalId = 0, categoryId = 0;
+			
+			ResultSet webPortalRS = ConnectDB.db.getWebPortalId(webPortal);
+			ResultSet categoryRS = ConnectDB.db.getCategoryId(category);
+			
+			while(webPortalRS.next()){
+				webPortalId = webPortalRS.getInt(1);
+			}
+			
+			while(categoryRS.next()){
+				categoryId = categoryRS.getInt(1);
+			}
+		    
+		  while(rS.next()){			
+				if(rS.getString("name").equals(fileConfName)){
+					return true;
+				}
+			}
+			
+		    ConnectDB.db.insertConfFileParameters(fileConfName, webPortalId, categoryId, dateMakerOnlyDay());
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+		
+		return b;
+	}
+	
+	/**
+	 * Función creada para la inserción, en caso de que aun no exista, del parámetro web_portal del fichero de configuración en la base de datos.
+	 * 
+	 */
+	
+	public void prepareWebPortalParameters(){
+		String webPortal = confFile_array.get(1);
+		boolean b = false;
+		
+		try{
+			ResultSet rS = ConnectDB.db.getWebPortal();			
+			
+			while(rS.next()){			
+				if(rS.getString("name").equals(webPortal)){
+					b = true;
+				}
+			}
+			
+			if(!b){
+				ConnectDB.db.insertWebPortalParameters(webPortal);
+			}
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Función que genera la fecha actual del sistema sin especificar la hora para asignarsela a la entrada del 
+	 * fichero de configuración.
+	 * 
+	 * @return Devuelve la fecha del sistema sin la hora.
+	 */
+	
+	public String dateMakerOnlyDay(){
+		String date;
+		Calendar cal = Calendar.getInstance();
+		
+		String day = Integer.toString(cal.get(Calendar.DATE));
+	    String month = Integer.toString((cal.get(Calendar.MONTH)+1));
+	    String year = Integer.toString(cal.get(Calendar.YEAR));
+	    
+	    date = year+"-"+month+"-"+day;
+	    
+	    return date;
 	}
 	
 	/**
@@ -232,10 +319,8 @@ public class XMLReader{
 	 * @return Devuelve un objeto de la clase InfoOrganizator con los parámetros inicializados.
 	 */
 	
-	public InfoOrganizator infoReady(){
-    	InfoOrganizator iO = new InfoOrganizator(url, confFile_array, mainEntity_array, nextPage_array, attributes_array, db);
-	
-    	return iO;
+	public void infoReady(){
+		InfoOrganizator.getInstance(url, confFile_array, mainEntity_array, nextPage_array, attributes_array);
 	}
 	
 	/**
