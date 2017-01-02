@@ -244,7 +244,7 @@ public class HTMLParser{
 		logger.log("Response: " + responseCode, iLogger.Level.INFO);
 
 		BufferedReader in = new BufferedReader(
-				new InputStreamReader(con.getInputStream()));
+				new InputStreamReader(con.getInputStream(), "UTF-8"));
 
 		if(bytes < 0) {        
 			String inputLine;
