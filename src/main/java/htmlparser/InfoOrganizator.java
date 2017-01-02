@@ -14,11 +14,6 @@ import database.ConnectDB;
  *
  * 'multMainEntity_array'	Array que almacena cada una de las URLs de cada entidad perteneciente a la entidad principal múltiple.
  * 'attributeValues_array'	Array que almacena los valores de un atributo múltiple.
- * 'mainEntity_array'		Array que almacena los parámetros y reglas de la entidad principal.
- * 'confFile_array' 		Array que almacena los parámetros del fichero de configuración.
- * 'nextPage_array'			Array que almacena los parámetros y reglas de la función de página siguiente.
- * 'attributes_array'		Array que almacena todos los atributos asociados a cada entidad, que a su vez almacena los parámetros de cada atributo.
- * 'url'					Variable que almacena la URL de la entidad principal introducida en el fichero de configuración.
  * 'iD'						Instancia de InfoDownloader para el uso de las funciones de dicha clase.
  */
 
@@ -26,37 +21,20 @@ public class InfoOrganizator{
 
 	ArrayList<String> multMainEntity_array = new ArrayList<String>();
 	ArrayList<String> attributeValues_array = new ArrayList<String>();
-	ArrayList<String> mainEntity_array = new ArrayList<String>();
-	public ArrayList<String> confFile_array = new ArrayList<String>();
-	ArrayList<String> nextPage_array = new ArrayList<String>();
-	ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
-	String url;
 	InfoDownloader iD = new InfoDownloader();
 	public static InfoOrganizator iO;
 	int c;
 
 	/**
 	 * Constructor de la clase InfoOrganizator.
-	 * 
-	 * @param url, Variable que almacena la URL de la entidad principal.
-	 * @param confFile_array, Array que almacena los parámetros del fichero de configuración.
-	 * @param mainEntity_array, Array que almacena los parámetros y reglas de la entidad principal.
-	 * @param nextPage_array, Array que almacena los parámetros y reglas de la función de página siguiente.
-	 * @param attributes_array, Array que almacena todos los atributos asociados a cada entidad, que a su vez almacena los parámetros de cada atributo.
-	 * @param db, Instancia de la clase ConnectDB.
+	 *
 	 */
 
-	private InfoOrganizator(String url, ArrayList<String> confFile_array, ArrayList<String> mainEntity_array, ArrayList<String> nextPage_array, ArrayList<ArrayList<String>> attributes_array){
-		this.url = url;
-		this.confFile_array = confFile_array;
-		this.mainEntity_array = mainEntity_array;
-		this.nextPage_array = nextPage_array;
-		this.attributes_array = attributes_array;
-	}
+	private InfoOrganizator(){}
 
-	public static InfoOrganizator getInstance(String url, ArrayList<String> confFile_array, ArrayList<String> mainEntity_array, ArrayList<String> nextPage_array, ArrayList<ArrayList<String>> attributes_array){
+	public static InfoOrganizator getInstance(){
 		if(iO == null){
-			iO = new InfoOrganizator(url, confFile_array, mainEntity_array, nextPage_array, attributes_array);
+			iO = new InfoOrganizator();
 			//System.out.println("First instance of InfoOrganizator!");
 		}
 		else{
@@ -73,28 +51,26 @@ public class InfoOrganizator{
 	 */
 
 	public void mainExecution(){
-		String mainEntitySize = mainEntity_array.get(0);
-		String urlType = mainEntity_array.get(1);
+		String mainEntitySize = XMLReader.mainEntity_array.get(0);
+		String urlType = XMLReader.mainEntity_array.get(1);
 		String mainEntityXpath;
-		String urlRoot = mainEntity_array.get(3);
+		String urlRoot = XMLReader.mainEntity_array.get(3);
 		c = 0;
 
-		if(mainEntitySize.contains("simple")){
-			// No debe ejecutarse ninguna función de botón siguiente si solo se evalua una entidad.			
+		if(mainEntitySize.contains("simple")){			
 			simpleEntityExecution();
 		}
 		else{			
-			mainEntityXpath = mainEntity_array.get(2);
+			mainEntityXpath = XMLReader.mainEntity_array.get(2);
 
-			if(nextPage_array.isEmpty()){
+			if(XMLReader.nextPage_array.isEmpty()){
 				System.out.println("Downloading main entities...");
-				multMainEntity_array = iD.downloadArray(url, mainEntityXpath, null);
+				multMainEntity_array = iD.downloadArray(XMLReader.url, mainEntityXpath, null);
 
 				if(urlType.contains("incomplete")){
 					multMainEntity_array = iD.completeURLs(multMainEntity_array, urlRoot);
 				}
-
-				//iD.showArrayData(multMainEntity);			
+	
 				multEntityExecution();
 			}
 			else{
@@ -113,28 +89,27 @@ public class InfoOrganizator{
 	 */
 
 	public void nextPageExecution(String mainEntityXpath, String urlRoot){		
-		String nextPageType = nextPage_array.get(0);
-		String nextPageSize = nextPage_array.get(1);
-		String nextPageRule = nextPage_array.get(2);
-		String urlType = mainEntity_array.get(1);
+		String nextPageType = XMLReader.nextPage_array.get(0);
+		String nextPageSize = XMLReader.nextPage_array.get(1);
+		String nextPageRule = XMLReader.nextPage_array.get(2);
+		String urlType = XMLReader.mainEntity_array.get(1);
 
 		switch(nextPageType){
 		case "button":			
-			multMainEntity_array = iD.nextPagesButton(url, nextPageSize, nextPageRule, mainEntityXpath, urlType, urlRoot);				
+			multMainEntity_array = iD.nextPagesButton(XMLReader.url, nextPageSize, nextPageRule, mainEntityXpath, urlType, urlRoot);				
 
 			break;
 		case "pattern":
-			String nextPageInitValue = nextPage_array.get(3);
-			String nextPageIncrement = nextPage_array.get(4);
+			String nextPageInitValue = XMLReader.nextPage_array.get(3);
+			String nextPageIncrement = XMLReader.nextPage_array.get(4);
 
-			multMainEntity_array = iD.nextPagesPattern(url, nextPageSize, nextPageRule, nextPageInitValue, nextPageIncrement, mainEntityXpath, urlType, urlRoot);
+			multMainEntity_array = iD.nextPagesPattern(XMLReader.url, nextPageSize, nextPageRule, nextPageInitValue, nextPageIncrement, mainEntityXpath, urlType, urlRoot);
 
 			break;
 		default:
 			break;
 		}
 
-		//showMultMainEntity_array();
 		multEntityExecution();
 	}
 
@@ -144,7 +119,7 @@ public class InfoOrganizator{
 	 */
 
 	public void simpleEntityExecution(){
-		String rerun = confFile_array.get(3);
+		String rerun = XMLReader.confFile_array.get(3);
 		int confFileId = 0;
 
 		try{
@@ -161,15 +136,14 @@ public class InfoOrganizator{
 		
 		System.out.println("\nDownloading nodes from entity...");
 
-		for(int i = 0; i < attributes_array.size(); i++){
-			String attributeRule = attributes_array.get(i).get(1);
+		for(int i = 0; i < XMLReader.attributes_array.size(); i++){
+			String attributeRule = XMLReader.attributes_array.get(i).get(1);
 
-			//String date = dateMaker();
-			attributeValues_array = iD.downloadArray(url, attributeRule, null);
+			attributeValues_array = iD.downloadArray(XMLReader.url, attributeRule, null);
 
 			for(int j = 0; j < attributeValues_array.size(); j++){
 				try{
-					insertValuesDB(attributeValues_array.get(j), i, url, date);
+					insertValuesDB(attributeValues_array.get(j), i, XMLReader.url, date);
 				}catch(SQLException e){
 					e.printStackTrace();
 				}
@@ -201,7 +175,7 @@ public class InfoOrganizator{
 	 */
 
 	public void multEntityExecution(){
-		String rerun = confFile_array.get(3);
+		String rerun = XMLReader.confFile_array.get(3);
 		int confFileId = 0;
 
 		try{
@@ -219,8 +193,8 @@ public class InfoOrganizator{
 			
 			System.out.println("\nDownloading nodes from entity "+(i+1)+"...");
 
-			for(int j = 0; j < attributes_array.size(); j++){
-				String attributeRule = attributes_array.get(j).get(1);
+			for(int j = 0; j < XMLReader.attributes_array.size(); j++){
+				String attributeRule = XMLReader.attributes_array.get(j).get(1);
 
 				//String date = dateMaker();
 				attributeValues_array = iD.downloadArray(multMainEntity_array.get(i), attributeRule, null);
@@ -259,15 +233,17 @@ public class InfoOrganizator{
 	 * 
 	 * @param value, Valor que contiene el atributo que se ha descargado.
 	 * @param index, Índice del atributo del que se quiere almacenar su valor. Se necesita para distinguir entre un atributo y otro.
+	 * @param urlEntity, Identificador de la entidad de una determinada url para distinguir los atributos de una entidad de los de otra entidad.
+	 * @param date, Fecha en la que empezaron a ser descargados los atributos de una entidad.
 	 * @throws SQLException
 	 */
 
 	public void insertValuesDB(String value, int index, String urlEntity, String date) throws SQLException{
 		int numEntity = urlEntity.hashCode();
 		int confFileId = getConfFileId(), webPortalId = 0, categoryId = 0;
-		ResultSet webPortalRS = ConnectDB.db.getWebPortalId(confFile_array.get(1));
-		ResultSet categoryRS = ConnectDB.db.getCategoryId(confFile_array.get(2));
-		String nameAttribute = attributes_array.get(index).get(0);
+		ResultSet webPortalRS = ConnectDB.db.getWebPortalId(XMLReader.confFile_array.get(1));
+		ResultSet categoryRS = ConnectDB.db.getCategoryId(XMLReader.confFile_array.get(2));
+		String nameAttribute = XMLReader.attributes_array.get(index).get(0);
 		c++;
 
 		while(webPortalRS.next()){
@@ -295,7 +271,7 @@ public class InfoOrganizator{
 	public int getConfFileId() throws SQLException{
 		int confFileId = 0;
 
-		ResultSet confFileRS = ConnectDB.db.getConfFileId(confFile_array.get(0));
+		ResultSet confFileRS = ConnectDB.db.getConfFileId(XMLReader.confFile_array.get(0));
 
 		while(confFileRS.next()){
 			confFileId = confFileRS.getInt(1);

@@ -28,6 +28,14 @@ import htmlparser.iLogger;
 import htmlparser.KeyValue;
 import htmlparser.DefaultLogger;
 
+/**
+ * @author Juanca
+ *
+ * Clase con las funciones de htmlcleaner, dom y xpath para la descarga de la información
+ * a partir de los parámetros especificados en el fichero de configuración.
+ * 
+ */
+
 public class HTMLParser{
 
 	public enum Method {GET, POST};
@@ -66,7 +74,6 @@ public class HTMLParser{
 
 	public ArrayList<String> downloadAsArray(String flag) {
 		ArrayList<String> results = new ArrayList<String>();
-		//System.out.println("Url: "+Url+", xPath: "+xPath);
 
 		if(!(xPath.isEmpty())){            
 			try{
@@ -119,12 +126,11 @@ public class HTMLParser{
 		}			
 		return null;     
 	}
-
+	
 	public String downloadAsString(){
 		String result, resultFixed = "";
 
-		if(!(xPath.isEmpty())){
-			//System.out.println("Url: "+Url+", xPath: "+xPath);            
+		if(!(xPath.isEmpty())){           
 			try {
 				TagNode tagNode = new HtmlCleaner().clean(doRequest().toString());
 				doc = new DomSerializer(new CleanerProperties()).createDOM(tagNode);
@@ -133,15 +139,12 @@ public class HTMLParser{
 
 				NodeList nodes = (NodeList) xpath.evaluate(xPath, getDoc(), XPathConstants.NODESET);
 
-				//System.out.println("String Search results: "+nodes.getLength()+" nodes.");
-
 				for(int i = 0; i < nodes.getLength(); i++) {
 					result = nodes.item(i).getTextContent();
 
 					resultFixed = dF.fix(result);
 				}
-
-				//System.out.println("Current node value: "+resultCod);                
+				
 				return resultFixed;
 			} catch (XPathExpressionException e) {
 				e.printStackTrace();
@@ -195,7 +198,6 @@ public class HTMLParser{
 		con.setConnectTimeout(connectTimeout);
 		con.setReadTimeout(connectTimeout);
 
-		//add request header
 		String methodName = "GET";
 		if(method == Method.POST) {
 			methodName = "POST";
@@ -215,9 +217,8 @@ public class HTMLParser{
 		}    
 
 		if(method == Method.GET) {
-			// @todo necesita hacer algo diferente a cuando se trata de un POST?
+			
 		} else {
-			// Send post request
 			con.setDoOutput(true);
 			try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
 				wr.writeBytes(urlParameters);
@@ -232,12 +233,9 @@ public class HTMLParser{
 
 		int responseCode = con.getResponseCode();
 
-		//***** Si la URL existe (responseCode = 200), devolvemos response como el código html *****
-
 		StringBuffer response = new StringBuffer();
 
 		if(responseCode != 200){
-			//System.out.println("La url NO existe");
 			response.append("Error404");
 
 			return response;
@@ -252,7 +250,6 @@ public class HTMLParser{
 			String inputLine;
 			while ((inputLine = in.readLine()) != null) {
 				response.append(inputLine + "\n");
-				//logger.log(inputLine);
 			}
 		} else {
 			char[] array = new char[bytes];            
@@ -275,11 +272,6 @@ public class HTMLParser{
 		}
 
 		logger.log("\n" + response, iLogger.Level.DEBUG);
-		/*}
-        else{
-        	response.append("");
-        	JOptionPane.showMessageDialog(null, "404 Error! Page not found!\nYou has tried to connect to an non-existent URL!\n\n("+url+")");
-        }*/
 
 		return response;
 	}

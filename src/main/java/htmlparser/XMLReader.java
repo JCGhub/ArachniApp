@@ -30,6 +30,7 @@ import database.ConnectDB;
  * 
  * Clase creada para la validación y lectura del fichero xml.
  *
+ * 'xmlContent_array'	Array que almacena todos los parámetros para luego mostrarlos en la función showXmlFileContent().
  * 'mainEntity_array'	Array que almacena los parámetros y reglas de la entidad principal.
  * 'confFile_array' 	Array que almacena los parámetros del fichero de configuración.
  * 'nextPage_array'		Array que almacena los parámetros y reglas de la función de página siguiente.
@@ -42,18 +43,18 @@ import database.ConnectDB;
 public class XMLReader{
 
 	ArrayList<String> xmlContent_array = new ArrayList<String>();
-	ArrayList<String> mainEntity_array = new ArrayList<String>();
-	public ArrayList<String> confFile_array = new ArrayList<String>();
-	ArrayList<String> nextPage_array = new ArrayList<String>();
-	ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
+	static ArrayList<String> mainEntity_array = new ArrayList<String>();
+	public static ArrayList<String> confFile_array = new ArrayList<String>();
+	static ArrayList<String> nextPage_array = new ArrayList<String>();
+	static ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
 	Document xmlFile;
-	String xml, url;
+	String xml;
+	static String url;
 
 	/**
 	 * Constructor de la clase XMLReader.
 	 * 
 	 * @param xml, Ruta en la que se sitúa el fichero xml que se va a leer.
-	 * @param db, Instancia de la clase ConnectDB.
 	 * 
 	 * @throws Exception
 	 */
@@ -97,8 +98,6 @@ public class XMLReader{
 	 */
 
 	public void readFile() throws Exception{
-		//Extraemos los atributos de la etiqueta conf
-
 		xmlContent_array.add("Configuration File Parameters");
 		xmlContent_array.add("-----------------------------");
 
@@ -118,23 +117,17 @@ public class XMLReader{
 		confFile_array.add(confFileAtt5);
 		xmlContent_array.add("Time (minutes): "+confFileAtt5);
 
-		//Extraemos la url
-
 		xmlContent_array.add("\nMain Entity parameters");
 		xmlContent_array.add("----------------------");
 
 		url = xmlFile.getElementsByTagName("url").item(0).getTextContent();
 		xmlContent_array.add("Url: "+url);
 
-		//Extraemos las entidades
-
 		NodeList entities_list = xmlFile.getElementsByTagName("entities");
 
 		for(int i = 0; i < entities_list.getLength(); i++){    		
 			Node entity_node = entities_list.item(i);
 			Element entity = (Element)entity_node;
-
-			//Extraemos la entidad principal
 
 			Node mainEntity_node = entity.getElementsByTagName("main_entity").item(0);
 			Element mainEntity = (Element)mainEntity_node;
@@ -155,8 +148,6 @@ public class XMLReader{
 			String urlRoot = urlRoot_node.getFirstChild().getNodeValue();
 			mainEntity_array.add(urlRoot);
 			xmlContent_array.add("Url root: "+urlRoot);
-
-			//Extraemos la información de las funciones de página siguiente
 
 			if(entity.getElementsByTagName("next_page").getLength() > 0){
 				xmlContent_array.add("\nNext Page parameters");
@@ -188,8 +179,6 @@ public class XMLReader{
 			}
 		}
 
-		//Extraemos las atributos
-
 		NodeList attributes_list = xmlFile.getElementsByTagName("attributes");
 
 		for(int i = 0; i < attributes_list.getLength(); i++){
@@ -220,8 +209,6 @@ public class XMLReader{
 				attributes_array.add(attributes_currArray);
 			}
 		}
-
-		infoReady();
 	}
 
 	/**
@@ -316,11 +303,10 @@ public class XMLReader{
 	 * Función que crea una instancia de la clase InfoOrganizator llamada desde ParserWindow para preparar la ejecución
 	 * de las funciones de dicha clase.
 	 * 
-	 * @return Devuelve un objeto de la clase InfoOrganizator con los parámetros inicializados.
 	 */
 
 	public void infoReady(){
-		InfoOrganizator.getInstance(url, confFile_array, mainEntity_array, nextPage_array, attributes_array);
+		InfoOrganizator.getInstance();
 	}
 
 	/**

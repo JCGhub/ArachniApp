@@ -19,6 +19,13 @@ import java.io.IOException;
 import java.awt.event.ActionEvent;
 import javax.swing.JFileChooser;
 
+/**
+ * @author Juanca
+ *
+ * Clase de la ventana principal de la aplicación de escritorio.
+ * 
+ */
+
 public class MainWindow extends JFrame{
 
 	private JPanel contentPane;
@@ -94,18 +101,18 @@ public class MainWindow extends JFrame{
 						if(xR.validateFile()){
 							xR.readFile();
 
-							pW = new ParserWindow();       				
-
 							xR.prepareWebPortalParameters();
 							boolean b = xR.prepareConfFileParameters();
 
 							if(b){
-								JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.confFile_array.get(0)+"' already exists! Use another name.",
+								JOptionPane.showMessageDialog(null, "Error: The name of the file '"+XMLReader.confFile_array.get(0)+"' already exists! Use another name.",
 										"XML PROCESSING ERROR", JOptionPane.ERROR_MESSAGE);
 							}
 							else{
 								JOptionPane.showMessageDialog(null, "Xml file PROCESSED!!");
-
+								
+								xR.infoReady();
+								pW = new ParserWindow();
 								pW.setVisible(true);
 								dispose();
 							}
