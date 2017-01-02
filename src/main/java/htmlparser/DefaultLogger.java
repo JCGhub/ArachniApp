@@ -26,24 +26,20 @@ public class DefaultLogger implements iLogger{
 		return false;
 	}
 
-	@Override
 	public void log(String message){
 		System.out.println(message);
 	}
 
-	@Override
 	public void log(String message, Level level){
 		if(isOutputEnabledFor(level)){
 			System.out.println(message);
 		}
 	}
 
-	@Override
 	public void setLevel(Level level){
 		currLevel = level;
 	}
 
-	@Override
 	public Level getLevel(){
 		return currLevel;
 	}    

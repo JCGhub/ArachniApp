@@ -77,7 +77,7 @@ public class XMLReader{
 	public boolean validateFile(){
 		try{
 			SchemaFactory sF = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-			Schema schema = sF.newSchema(new File("confGen2.xsd"));
+			Schema schema = sF.newSchema(getClass().getClassLoader().getResource("confGen.xsd"));
 
 			Validator validator = schema.newValidator();
 			validator.validate(new StreamSource(new File(xml)));

@@ -158,6 +158,8 @@ public class InfoOrganizator{
 		}
 
 		String date = dateMaker();
+		
+		System.out.println("\nDownloading nodes from entity...");
 
 		for(int i = 0; i < attributes_array.size(); i++){
 			String attributeRule = attributes_array.get(i).get(1);
@@ -214,6 +216,8 @@ public class InfoOrganizator{
 
 		for(int i = 0; i < multMainEntity_array.size(); i++){
 			String date = dateMaker();
+			
+			System.out.println("\nDownloading nodes from entity "+(i+1)+"...");
 
 			for(int j = 0; j < attributes_array.size(); j++){
 				String attributeRule = attributes_array.get(j).get(1);
