@@ -99,18 +99,18 @@ public class MainWindow extends JFrame{
 						xR = new XMLReader(xml);
 
 						if(xR.validateFile()){
-							xR.readFile();
+							//xR.readFile();
 
 							xR.prepareWebPortalParameters();
 							boolean b = xR.prepareConfFileParameters();
 
 							if(b){
-								JOptionPane.showMessageDialog(null, "Error: The name of the file '"+XMLReader.confFile_array.get(0)+"' already exists! Use another name.",
+								JOptionPane.showMessageDialog(null, "Error: The name of the file '"+xR.getFileConfName()+"' already exists! Use another name.",
 										"XML PROCESSING ERROR", JOptionPane.ERROR_MESSAGE);
 							}
 							else{
 								JOptionPane.showMessageDialog(null, "Xml file PROCESSED!!");
-								
+								xR.readFile();
 								xR.infoReady();
 								pW = new ParserWindow();
 								pW.setVisible(true);

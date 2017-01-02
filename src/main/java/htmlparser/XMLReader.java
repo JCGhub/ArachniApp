@@ -47,6 +47,7 @@ public class XMLReader{
 	public static ArrayList<String> confFile_array = new ArrayList<String>();
 	static ArrayList<String> nextPage_array = new ArrayList<String>();
 	static ArrayList<ArrayList<String>> attributes_array = new ArrayList<ArrayList<String>>();
+	public String fileConfName;
 	Document xmlFile;
 	String xml;
 	static String url;
@@ -103,6 +104,7 @@ public class XMLReader{
 
 		String confFileAtt1 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("name").getNodeValue();
 		confFile_array.add(confFileAtt1);
+		System.out.println("Actual: "+confFileAtt1+", Insertado: "+confFile_array.get(0));
 		xmlContent_array.add("Name: "+confFileAtt1);
 		String confFileAtt2 = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("web_portal").getNodeValue();
 		confFile_array.add(confFileAtt2);
@@ -219,9 +221,12 @@ public class XMLReader{
 	 */
 
 	public boolean prepareConfFileParameters(){
-		String fileConfName = confFile_array.get(0);
-		String webPortal = confFile_array.get(1);
-		String category = confFile_array.get(2);
+		fileConfName = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("name").getNodeValue();
+		String webPortal = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("web_portal").getNodeValue();
+		String category = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("category").getNodeValue();
+		//String fileConfName = confFile_array.get(0);
+		//String webPortal = confFile_array.get(1);
+		//String category = confFile_array.get(2);
 		boolean b = false;
 
 		try{
@@ -259,7 +264,8 @@ public class XMLReader{
 	 */
 
 	public void prepareWebPortalParameters(){
-		String webPortal = confFile_array.get(1);
+		String webPortal = xmlFile.getElementsByTagName("conf").item(0).getAttributes().getNamedItem("web_portal").getNodeValue();
+		//String webPortal = confFile_array.get(1);
 		boolean b = false;
 
 		try{
@@ -338,5 +344,9 @@ public class XMLReader{
 
 	public String getUrl(){
 		return url;
+	}
+	
+	public String getFileConfName(){
+		return fileConfName;
 	}
 }
