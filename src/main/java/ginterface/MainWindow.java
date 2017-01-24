@@ -48,9 +48,11 @@ public class MainWindow extends JFrame{
 		contentPane.setLayout(null);
 
 		textField = new JTextField();
+		textField.setEnabled(false);
 		textField.setBounds(27, 11, 200, 20);
 		contentPane.add(textField);
 		textField.setColumns(10);
+		textField.setEditable(false);
 
 		JButton btnSelectFile = new JButton("Select file");
 		btnSelectFile.addActionListener(new ActionListener() {
@@ -81,6 +83,8 @@ public class MainWindow extends JFrame{
 		contentPane.add(btnSelectFile);
 
 		textArea = new JTextArea();
+		textArea.setEnabled(false);
+		textArea.setEditable(false);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 		textArea.setBounds(27, 42, 385, 156);

@@ -13,9 +13,10 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/commons-lang3-3.4-javadoc.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.4.jar"/>
 	<classpathentry kind="lib" path="lib/htmlcleaner-2.7.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.39-bin.jar"/>
+	<classpathentry kind="lib" path="lib/commons-lang3-3.4-javadoc.jar"/>
+	<classpathentry kind="lib" path="lib/weblaf-complete-1.28.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
